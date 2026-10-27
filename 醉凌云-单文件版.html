@@ -1,0 +1,2695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>醉凌云 · 江湖冒险</title>
+<style>
+/* ===== 醉凌云 · 江湖冒险 v2.0 ===== */
+:root{
+  --ink:#120e0b; --ink-2:#1c1511; --panel:#221a14; --panel-2:#2b2018;
+  --line:#4a3524; --gold:#d8b06a; --gold-2:#f3d9a4; --gold-dim:#8a6c3f;
+  --red:#b23a2f; --red-2:#e05a4a; --text:#ece0cb; --text-dim:#b7a88f; --text-faint:#8a7b64;
+  --hp:#c94f3d; --mp:#4f8fc9; --enemy:#7a3b3b;
+  --shadow:0 12px 40px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"KaiTi","STKaiti","楷体","SimSun","宋体","Songti SC",serif;
+  background:
+    radial-gradient(1200px 800px at 20% -10%, rgba(150,95,45,.20), transparent 60%),
+    radial-gradient(1000px 700px at 110% 110%, rgba(110,35,30,.24), transparent 55%),
+    linear-gradient(180deg,#181210 0%, #0d0a08 100%);
+  background-attachment:fixed;
+  color:var(--text); min-height:100vh; line-height:1.75; letter-spacing:.5px; overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 4px),
+    radial-gradient(600px 300px at 80% 0%, rgba(255,220,160,.05), transparent 60%);
+}
+#app{position:relative;z-index:1;max-width:840px;margin:0 auto;padding:16px 12px 90px}
+
+/* 面板 */
+.panel{
+  background:linear-gradient(180deg,var(--panel),var(--ink-2));
+  border:1px solid var(--line); border-radius:14px;
+  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
+  padding:20px 22px; position:relative;
+}
+.panel::before{content:"";position:absolute;inset:6px;border:1px solid rgba(216,176,106,.16);border-radius:9px;pointer-events:none}
+.panel > *{position:relative;z-index:1}
+
+/* 标题 */
+.title-block{text-align:center;padding:36px 20px 28px}
+.game-title{font-family:"STXingkai","Xingkai SC","KaiTi","楷体",serif;font-size:66px;color:var(--gold-2);font-weight:400;text-shadow:0 0 18px rgba(216,176,106,.35),0 2px 2px #000;letter-spacing:12px;margin-bottom:6px}
+.game-subtitle{font-size:17px;color:var(--text-dim);letter-spacing:8px;margin-bottom:4px}
+.game-seal{display:inline-block;margin-top:12px;padding:6px 14px;border:1px solid var(--red);color:var(--red-2);border-radius:6px;font-size:14px;letter-spacing:4px;transform:rotate(-2deg);box-shadow:inset 0 0 12px rgba(178,58,47,.25)}
+.lead{color:var(--text-dim);font-size:15px;text-align:center;margin:0 0 14px}
+
+/* 按钮 */
+.btn{display:inline-block;cursor:pointer;border:1px solid var(--gold-dim);background:linear-gradient(180deg,#2d211a,#1b140f);color:var(--gold-2);border-radius:9px;padding:11px 26px;font-size:16px;letter-spacing:3px;font-family:inherit;transition:all .18s;box-shadow:inset 0 0 0 1px rgba(216,176,106,.06)}
+.btn:hover{background:linear-gradient(180deg,#3a2c1e,#241a12);border-color:var(--gold);color:#fff;box-shadow:0 0 16px rgba(216,176,106,.25)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(180deg,#7a3b25,#4a2213);border-color:var(--red);color:#ffd9c8}
+.btn.primary:hover{background:linear-gradient(180deg,#9a4a2c,#5a2a16);box-shadow:0 0 16px rgba(178,58,47,.4)}
+.btn.small{padding:7px 14px;font-size:13.5px;letter-spacing:2px}
+.btn.block{display:block;width:100%;text-align:center;margin:8px 0}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* HUD */
+#hud{position:sticky;top:0;z-index:30;display:none}
+.hud-inner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(180deg,#241b15f2,#1a130ef2);backdrop-filter:blur(6px);border:1px solid var(--line);border-top:none;border-radius:0 0 12px 12px;padding:9px 14px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.hud-inner .tag{font-size:12px;color:var(--gold-dim);border:1px solid var(--gold-dim);padding:2px 8px;border-radius:5px;letter-spacing:1px;white-space:nowrap}
+.hud-inner .name{font-size:16px;color:var(--gold-2);letter-spacing:2px}
+.bars{display:flex;gap:12px;flex:1;min-width:150px}
+.bar{flex:1;min-width:60px}
+.bar .lbl{font-size:11px;color:var(--text-dim);letter-spacing:1px;display:flex;justify-content:space-between}
+.bar .track{height:9px;background:#0009;border-radius:5px;overflow:hidden;border:1px solid #000}
+.bar .fill{height:100%;border-radius:5px;transition:width .3s}
+.bar .fill.hp{background:linear-gradient(90deg,#a33428,#e06a50)}
+.bar .fill.mp{background:linear-gradient(90deg,#2f5f8a,#5fa8d8)}
+.bar .fill.xp{background:linear-gradient(90deg,#6fae8f,#b7d9c4)}
+
+/* 章节横批 */
+.chapter-banner{text-align:center;margin:6px 0 12px;padding:8px 0;color:var(--gold);font-size:20px;letter-spacing:8px;position:relative}
+.chapter-banner::before,.chapter-banner::after{content:"—";color:var(--gold-dim);margin:0 14px}
+
+/* 剧情 */
+.story-box{margin:6px 0 4px}
+.speaker{display:inline-block;margin-bottom:10px;padding:3px 14px;border-radius:4px;background:linear-gradient(180deg,#7a3b25,#4a2213);color:#ffd9c8;font-size:15px;letter-spacing:3px;border:1px solid var(--red)}
+.story-text{font-size:18px;color:var(--text);text-align:justify;min-height:3.2em;white-space:pre-wrap}
+.story-text::first-letter{font-size:1.4em;color:var(--gold)}
+.tap-hint{text-align:center;color:var(--text-faint);font-size:13px;margin:10px 0;letter-spacing:2px}
+.choices{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.choice{text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:10px;background:linear-gradient(180deg,#2a1f17,#1d1610);color:var(--text);padding:13px 18px;font-size:16px;letter-spacing:1px;transition:all .18s;font-family:inherit}
+.choice:hover{border-color:var(--gold);color:var(--gold-2);transform:translateX(4px);box-shadow:0 0 14px rgba(216,176,106,.18)}
+.choice .key{color:var(--gold-dim);margin-right:8px;font-size:14px}
+.choice .hint{display:block;font-size:12.5px;color:var(--text-faint);margin-top:2px;letter-spacing:.5px}
+
+/* 通用卡片/网格 */
+.grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:14px}
+.card{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:linear-gradient(180deg,var(--panel),var(--ink-2));transition:all .2s;position:relative}
+.card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.5)}
+.card .head{padding:11px 14px;border-bottom:1px solid var(--line)}
+.card .head .nm{font-size:18px;color:var(--gold-2);letter-spacing:3px}
+.card .head .role{font-size:12px;color:var(--red-2);letter-spacing:1px}
+.card .body{padding:10px 14px;font-size:14px;color:var(--text-dim);line-height:1.6}
+
+/* 角色卡 + 立绘 */
+.char-card{cursor:pointer}
+.char-card:hover{border-color:var(--gold)}
+.char-card .portrait{width:100%;overflow:hidden;border-bottom:1px solid var(--line)}
+.char-card .cp-tag{text-align:center;font-size:12px;color:var(--gold);letter-spacing:2px;margin:4px 0}
+.char-card .premise{padding:9px 14px 12px;font-size:12.5px;color:var(--text-faint);line-height:1.6;border-top:1px dashed var(--line)}
+.portrait{width:100%;overflow:hidden}
+.portrait-svg,.portrait-img{display:block;width:100%;height:auto}
+.portrait.big{width:150px;flex-shrink:0;border:2px solid var(--gold);border-radius:10px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.dossier-top{display:flex;gap:16px;align-items:center;margin-bottom:12px}
+.dossier-top .nm{font-size:22px;color:var(--gold-2);letter-spacing:2px}
+.dossier-top .role{font-size:13px;color:var(--red-2)}
+.dossier-desc{font-size:15px;color:var(--text-dim);margin-bottom:12px}
+.premise-box{font-size:14.5px;color:var(--text);background:#191310;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;margin:12px 0;line-height:1.8}
+.premise-box b{color:var(--gold);display:block;margin-bottom:4px;letter-spacing:3px}
+
+/* chips / 选项标题 / 属性 */
+.opt-title{font-size:15px;color:var(--gold);letter-spacing:3px;margin:16px 0 8px;display:flex;align-items:center;gap:10px}
+.opt-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.chip{border:1px solid var(--gold-dim);border-radius:20px;padding:4px 14px;color:var(--gold);font-size:13px;letter-spacing:1px;background:#191310}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0}
+.stat-item{background:#191310;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.stat-item span{display:block;font-size:12px;color:var(--text-faint)}
+.stat-item b{font-size:17px;color:var(--gold-2);font-weight:400}
+.penalty{color:var(--red-2);font-size:13px;margin:6px 0}
+
+/* 战斗 */
+#battle{padding:14px}
+.battle-top{text-align:center;margin-bottom:8px;color:var(--text-dim);letter-spacing:2px;font-size:14px}
+.enemy-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:8px 0 14px}
+.enemy-card{width:150px;text-align:center;border:1px solid var(--enemy);border-radius:12px;background:linear-gradient(180deg,#2a1713,#1a0f0c);padding:12px 10px;transition:all .2s}
+.enemy-card.dead{opacity:.4;filter:grayscale(.7)}
+.enemy-card.target{border-color:var(--red-2);box-shadow:0 0 16px rgba(224,90,74,.4)}
+.enemy-card .enm{font-size:17px;color:#f0c9bd;letter-spacing:2px;margin-bottom:2px}
+.enemy-card .etitle{font-size:11.5px;color:var(--text-faint);margin-bottom:4px}
+.enemy-card .elem-tag{font-size:11px;color:var(--gold);margin-bottom:6px}
+.enemy-card .hp-track{height:8px;background:#0009;border-radius:4px;overflow:hidden;border:1px solid #000}
+.enemy-card .hp-fill{height:100%;background:linear-gradient(90deg,#7a2f26,#c94f3d);transition:width .3s}
+.enemy-card .ehp{font-size:11px;color:var(--text-dim);margin-top:4px}
+.enemy-card .intent{font-size:11.5px;margin-top:4px;color:var(--gold);min-height:1.2em;letter-spacing:1px}
+.enemy-portrait{width:84px;margin:0 auto 6px;overflow:hidden;border-radius:8px;border:1px solid var(--line)}
+.enemy-portrait .portrait-svg,.enemy-portrait .portrait-img{display:block;width:100%;height:auto}
+.you-row{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:#1d1610;flex-wrap:wrap}
+.you-row .avatar{width:58px;overflow:hidden;border-radius:8px;border:1px solid var(--line);flex-shrink:0}
+.you-row .avatar .portrait-svg,.you-row .avatar .portrait-img{display:block;width:100%;height:auto}
+.you-row .info{flex:1;min-width:170px}
+.you-row .nm{font-size:16px;color:var(--gold-2);letter-spacing:2px}
+.battle-log{border:1px solid var(--line);border-radius:12px;background:#12100cf2;padding:12px 14px;margin:14px 0;max-height:180px;overflow-y:auto;font-size:14.5px;color:var(--text-dim);min-height:120px}
+.battle-log .line{margin-bottom:6px;white-space:pre-wrap}
+.battle-log .you{color:#cfe3d8}.battle-log .foe{color:#f0c0b0}.battle-log .sys{color:var(--gold)}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px;margin-top:12px}
+.action{cursor:pointer;border:1px solid var(--line);border-radius:10px;background:#221a13;color:var(--text);padding:10px 8px;font-size:14.5px;text-align:center;letter-spacing:1px;font-family:inherit;transition:all .15s}
+.action:hover{border-color:var(--gold);color:var(--gold-2)}
+.action:disabled{opacity:.4;cursor:not-allowed}
+.action .cost{display:block;font-size:11px;color:var(--text-faint);margin-top:2px}
+.skill-sub{font-size:11.5px;color:var(--text-dim);display:block;margin-top:2px}
+
+/* 商店/背包/技能 列表项 */
+.shop-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;background:#191310;padding:11px 13px;margin-bottom:10px}
+.shop-item .rarity{font-size:11px;letter-spacing:1px;min-width:34px}
+.shop-item .nm{font-size:15px;color:var(--gold-2);letter-spacing:1px;flex:1;min-width:120px}
+.shop-item .desc{font-size:12px;color:var(--text-faint);width:100%}
+.shop-item .lvl{color:var(--gold);font-size:12px}
+.shop-item .elem{font-size:12px;color:#9fd4bb}
+
+/* 地图 */
+.region-card{padding:0}
+.region-card .region-actions{display:flex;gap:8px;padding:0 14px 13px}
+.region-card.locked{opacity:.5}
+
+/* 菜单弹层 */
+.overlay{position:fixed;inset:0;z-index:80;background:#000a;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.menu-panel{max-width:440px;width:100%}
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.menu-grid .btn{width:100%;text-align:center;padding:12px 6px}
+.modal-inner{max-width:600px;width:100%}
+.modal-inner h3{color:var(--gold-2);letter-spacing:4px;margin-bottom:12px;font-weight:400}
+.modal-inner textarea,.modal-inner input[type=text],.modal-inner input[type=password],.modal-inner input{width:100%;background:#12100c;border:1px solid var(--line);border-radius:8px;color:var(--text);padding:9px 12px;font-family:inherit;font-size:15px;margin-bottom:10px}
+.modal-inner label{display:block;font-size:13px;color:var(--text-dim);margin:6px 0 3px;letter-spacing:1px}
+.row{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+
+/* 结局 */
+.ending-title{font-size:40px;color:var(--gold-2);letter-spacing:10px;text-align:center;margin:10px 0 16px;text-shadow:0 0 20px rgba(216,176,106,.3)}
+.ending-tag{text-align:center;color:var(--red-2);letter-spacing:4px;margin-bottom:14px;font-size:15px}
+.ending-stats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:16px 0}
+
+/* 说明 */
+.help-list{font-size:15px;color:var(--text-dim);line-height:2;margin-top:10px}
+.help-list b{color:var(--gold-2);font-weight:400}
+
+/* 开场动画 */
+#screen-intro{position:fixed;inset:0;background:#000;z-index:200;cursor:pointer}
+#screen-intro video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.intro-hint{position:absolute;bottom:36px;left:0;right:0;text-align:center;color:var(--gold-2);letter-spacing:3px;font-size:15px;text-shadow:0 2px 10px #000;animation:blink 1.6s steps(1) infinite;pointer-events:none}
+.intro-sound{position:absolute;top:16px;right:16px;z-index:5}
+
+/* 通知 */
+#toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:99;display:none}
+.toast-inner{background:linear-gradient(180deg,#2d211a,#1b140f);border:1px solid var(--gold);color:var(--gold-2);padding:10px 22px;border-radius:9px;letter-spacing:2px;font-size:15px;box-shadow:0 8px 26px rgba(0,0,0,.6);white-space:nowrap}
+
+/* 手机适配 */
+@media (max-width:640px){
+  #app{padding:10px 8px 80px}
+  .game-title{font-size:46px;letter-spacing:8px}
+  .story-text{font-size:16.5px}
+  .grid-2{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+  .enemy-card{width:120px}
+  .actions{grid-template-columns:repeat(3,1fr)}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .chapter-banner{font-size:17px;letter-spacing:5px}
+  .hud-inner{gap:6px;padding:7px 10px}
+  .hud-inner .name{font-size:14px}
+  .bars{gap:8px}
+  .bar .lbl{font-size:10px}
+  .char-card .portrait{font-size:46px}
+  .choice{font-size:15px;padding:11px 14px}
+  .menu-grid{grid-template-columns:repeat(3,1fr)}
+  .toast-inner{white-space:normal;max-width:86vw}
+}
+@media (max-width:380px){
+  .enemy-card{width:104px}
+  .actions{grid-template-columns:repeat(2,1fr)}
+}
+
+</style>
+</head>
+<body>
+<!-- 开场动画 -->
+<section id="screen-intro" style="display:none">
+  <video id="intro-video" playsinline muted preload="auto"></video>
+  <div class="intro-hint" id="intro-hint">点击任意处进入江湖</div>
+  <button class="btn small intro-sound" id="intro-sound" style="display:none">🔊 开启声音</button>
+</section>
+
+<div id="app">
+
+  <!-- 顶部 HUD -->
+  <div id="hud">
+    <div class="hud-inner">
+      <span class="tag" id="hud-chapter">序章</span>
+      <span class="name" id="hud-name">无名</span>
+      <span class="tag" id="hud-lv">Lv.1</span>
+      <div class="bars">
+        <div class="bar"><div class="lbl"><span>气血</span><span id="hud-hp">100/100</span></div><div class="track"><div class="fill hp" id="hud-hpfill" style="width:100%"></div></div></div>
+        <div class="bar"><div class="lbl"><span>内力</span><span id="hud-mp">50/50</span></div><div class="track"><div class="fill mp" id="hud-mpfill" style="width:100%"></div></div></div>
+        <div class="bar"><div class="lbl"><span>修为</span><span id="hud-xp">0/100</span></div><div class="track"><div class="fill xp" id="hud-xpfill" style="width:0%"></div></div></div>
+      </div>
+      <button class="btn small" id="btn-menu">菜单</button>
+    </div>
+  </div>
+
+  <!-- 标题屏 -->
+  <section id="screen-title" class="panel title-block">
+    <div class="game-title">醉凌云</div>
+    <div class="game-subtitle">江 湖 冒 险</div>
+    <div class="game-seal">人生所求 · 凌云一醉</div>
+    <div style="margin-top:26px;display:flex;flex-direction:column;gap:12px;max-width:340px;margin-left:auto;margin-right:auto">
+      <button class="btn primary block" id="btn-new">开始新的江湖</button>
+      <button class="btn block" id="btn-continue">继续上次旅程</button>
+      <button class="btn block" id="btn-help">玩法说明</button>
+      <button class="btn block" id="btn-settings">AI 生成设置</button>
+    </div>
+    <p style="margin-top:22px;font-size:12.5px;color:var(--text-faint);letter-spacing:1px">原创同人剧情 · 进度保存在本机浏览器</p>
+  </section>
+
+  <!-- 角色选择 -->
+  <section id="screen-character" class="panel" style="display:none">
+    <div class="chapter-banner">选择你的身份</div>
+    <p class="lead">北阙朝堂与江湖之间，六位主人公因一场跨越十年的生死局，齐聚凌云台。你将执谁之命，饮下这杯「醉凌云」？</p>
+    <div class="grid-2" id="char-grid"></div>
+    <div style="text-align:center;margin-top:18px"><button class="btn small" id="btn-char-back">返回</button></div>
+  </section>
+
+  <!-- 自建角色 -->
+  <section id="screen-custom" class="panel" style="display:none">
+    <div class="chapter-banner">自建角色</div>
+    <p class="lead">无名之辈，亦有命数。设定你的姓名与出身，书写只属于你的专属剧情。</p>
+    <label>姓名（2-6 字）</label>
+    <input type="text" id="custom-name" maxlength="6" placeholder="例如：云无羁">
+    <label>出身身份</label>
+    <div class="grid-2" id="custom-roles" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))"></div>
+    <label>初始武学倾向</label>
+    <div class="grid-2" id="custom-styles" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))"></div>
+    <div class="row">
+      <button class="btn small" id="btn-custom-back">返回</button>
+      <button class="btn primary" id="btn-custom-ok">下一步</button>
+    </div>
+  </section>
+
+  <!-- 命格天赋（自建） -->
+  <section id="screen-destiny" class="panel" style="display:none">
+    <div class="chapter-banner">命格 · 天赋</div>
+    <p class="lead">观星定命，择才赋禀。不同命格与天赋，将决定你可修习的专属武学。</p>
+    <div class="opt-title">观 星 · 命 格</div>
+    <div class="grid-2" id="destiny-grid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))"></div>
+    <div class="opt-title">赋 禀 · 天 赋</div>
+    <div class="grid-2" id="talent-grid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))"></div>
+    <div style="text-align:center;margin-top:20px"><button class="btn primary" id="btn-destiny-ok" disabled>踏入凌云</button></div>
+  </section>
+
+  <!-- 角色档案（主人公系统绑定） -->
+  <section id="screen-dossier" class="panel" style="display:none">
+    <div class="chapter-banner">角色档案</div>
+    <div id="dossier-body"></div>
+    <div class="row" style="margin-top:18px">
+      <button class="btn small" id="btn-dossier-back">返回</button>
+      <button class="btn primary" id="btn-dossier-ok">踏入江湖</button>
+    </div>
+  </section>
+
+  <!-- 剧情主屏 -->
+  <section id="screen-story" class="panel" style="display:none">
+    <div class="chapter-banner" id="story-chapter">序章</div>
+    <div class="story-box">
+      <div id="story-speaker" class="speaker" style="display:none"></div>
+      <div class="story-text" id="story-text"></div>
+      <div class="tap-hint" id="story-hint">点击任意处继续</div>
+    </div>
+    <div class="choices" id="story-choices"></div>
+  </section>
+
+  <!-- 战斗屏 -->
+  <section id="screen-battle" class="panel" style="display:none">
+    <div class="battle-top" id="battle-scene"></div>
+    <div class="enemy-row" id="enemy-row"></div>
+    <div class="you-row">
+      <div class="avatar" id="battle-avatar">🗡️</div>
+      <div class="info">
+        <div class="nm" id="battle-you-name"></div>
+        <div class="bars">
+          <div class="bar"><div class="lbl"><span>气血</span><span id="battle-hp">100/100</span></div><div class="track"><div class="fill hp" id="battle-hpfill" style="width:100%"></div></div></div>
+          <div class="bar"><div class="lbl"><span>内力</span><span id="battle-mp">50/50</span></div><div class="track"><div class="fill mp" id="battle-mpfill" style="width:100%"></div></div></div>
+        </div>
+        <div style="font-size:12px;color:var(--text-faint);margin-top:4px" id="battle-buffs"></div>
+      </div>
+    </div>
+    <div class="battle-log" id="battle-log"></div>
+    <div class="actions" id="battle-actions"></div>
+  </section>
+
+  <!-- 背包 -->
+  <section id="screen-inventory" class="panel" style="display:none">
+    <div class="chapter-banner">背 包</div>
+    <div id="inv-list"></div>
+    <div style="text-align:center;margin-top:16px"><button class="btn small" id="btn-inv-back">返回江湖</button></div>
+  </section>
+
+  <!-- 技能 -->
+  <section id="screen-skills" class="panel" style="display:none">
+    <div class="chapter-banner">武 学</div>
+    <p class="lead" id="skill-points"></p>
+    <div id="skill-list"></div>
+    <div style="text-align:center;margin-top:16px"><button class="btn small" id="btn-skill-back">返回江湖</button></div>
+  </section>
+
+  <!-- 商店 -->
+  <section id="screen-shop" class="panel" style="display:none">
+    <div class="chapter-banner" id="shop-name">商店</div>
+    <p class="lead" id="shop-gold"></p>
+    <div id="shop-list"></div>
+    <div style="text-align:center;margin-top:16px"><button class="btn small" id="btn-shop-back">返回江湖</button></div>
+  </section>
+
+  <!-- 地图 -->
+  <section id="screen-map" class="panel" style="display:none">
+    <div class="chapter-banner">江 湖 地 图</div>
+    <p class="lead">自由探索可触发机遇、战斗、奇遇，收获银两、药品与武学。</p>
+    <div id="map-list"></div>
+    <div style="text-align:center;margin-top:16px"><button class="btn small" id="btn-map-back">返回江湖</button></div>
+  </section>
+
+  <!-- 角色详情 -->
+  <section id="screen-char" class="panel" style="display:none">
+    <div class="chapter-banner">角 色 详 情</div>
+    <div id="char-sheet"></div>
+    <div style="text-align:center;margin-top:16px"><button class="btn small" id="btn-char-back2">返回江湖</button></div>
+  </section>
+
+  <!-- 结局 -->
+  <section id="screen-ending" class="panel" style="display:none">
+    <div class="ending-tag">—— 全 剧 终 ——</div>
+    <div class="ending-title" id="ending-title">结局</div>
+    <div class="story-text" id="ending-text"></div>
+    <div class="ending-stats" id="ending-stats"></div>
+    <div style="text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn primary" id="btn-ending-restart">重开江湖</button>
+      <button class="btn" id="btn-ending-menu">返回标题</button>
+    </div>
+  </section>
+
+  <!-- 玩法说明 -->
+  <section id="screen-help" class="panel" style="display:none">
+    <div class="chapter-banner">玩法说明</div>
+    <div class="help-list">
+      <p><b>① 选身份：</b>六位主人公各有专属剧情、CP 感情线与系统绑定的命格/天赋/心法；自建角色可自由定制并解锁隐藏结局。</p>
+      <p><b>② 剧情抉择：</b>每一次选择都会记下「心性」，导向不同结局。</p>
+      <p><b>③ 回合制战斗：</b>普攻 / 武学 / 防御 / 用药，注意内力与气血，可单挑可群战。</p>
+      <p><b>④ 五行相克：</b>金→木→土→水→火→金。招式克制敌人时伤害大增，被克则减伤。</p>
+      <p><b>⑤ 升级成长：</b>战斗与剧情积累修为，升级提升属性并获得技能点；技能点可强化武学。</p>
+      <p><b>⑥ 武学装配：</b>最多装配 8 门武学；新武学可通过剧情、战斗掉落与机遇获得，且受命格/天赋限制。</p>
+      <p><b>⑦ 地图探索：</b>解锁区域后可自由探索，触发机遇、战斗，前往商店补给。</p>
+      <p><b>⑧ 声望：</b>朝堂/江湖/门派声望可正可负，总声望为负会带来负面影响。</p>
+      <p><b>⑨ AI 实时生成：</b>内置叙事引擎离线生成旁白；也可接入外部大模型实时扩写。</p>
+    </div>
+    <div style="text-align:center;margin-top:18px"><button class="btn small" id="btn-help-back">返回</button></div>
+  </section>
+
+</div>
+
+<!-- 通知 -->
+<div id="toast"><div class="toast-inner" id="toast-text"></div></div>
+
+<!-- 菜单弹层 -->
+<div id="menu-modal" class="overlay">
+  <div class="modal-inner panel menu-panel">
+    <h3>江湖 · 行囊</h3>
+    <div class="menu-grid">
+      <button class="btn" id="m-char">角色</button>
+      <button class="btn" id="m-bag">背包</button>
+      <button class="btn" id="m-skill">武学</button>
+      <button class="btn" id="m-map">地图</button>
+      <button class="btn" id="m-shop">商店</button>
+      <button class="btn" id="m-save">存档</button>
+      <button class="btn" id="m-sound">音效：开</button>
+    </div>
+    <div class="row">
+      <button class="btn small" id="m-title">返回标题</button>
+      <button class="btn primary small" id="m-close">继续江湖</button>
+    </div>
+  </div>
+</div>
+
+<!-- 机遇弹层 -->
+<div id="map-modal" class="overlay">
+  <div class="modal-inner panel">
+    <h3>机 遇</h3>
+    <div class="story-text" id="map-modal-text"></div>
+    <div class="row"><button class="btn primary small" id="map-ok">继续</button></div>
+  </div>
+</div>
+
+<!-- 设置弹层 -->
+<div id="modal" class="overlay">
+  <div class="modal-inner panel">
+    <h3>AI 生成设置</h3>
+    <p style="font-size:13px;color:var(--text-faint);margin-bottom:8px">默认使用内置「叙事引擎」离线生成文本。如需接入真实大模型，请填写 OpenAI 兼容接口（需支持浏览器跨域 CORS，或使用本地代理/本地模型）。</p>
+    <label>接口地址（base URL）</label>
+    <input type="text" id="cfg-base" placeholder="例如 https://api.openai.com/v1 或 http://localhost:11434/v1">
+    <label>API Key（本地模型可留空）</label>
+    <input type="password" id="cfg-key" placeholder="sk-...">
+    <label>模型名</label>
+    <input type="text" id="cfg-model" placeholder="deepseek-chat">
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px"><input type="checkbox" id="cfg-ai" style="width:auto"> 启用外部 AI（关闭则始终使用内置引擎）</label>
+    <div class="row">
+      <button class="btn small" id="btn-cfg-cancel">取消</button>
+      <button class="btn primary small" id="btn-cfg-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   《醉凌云 · 江湖冒险》v2.0 —— 内容数据（原创同人）
+   五行 / 技能 / 心法 / 物品 / 商店 / 命格天赋 / 角色 / 敌人 / 地图 / 机遇
+   ============================================================ */
+
+/* ---------- 成长曲线 ---------- */
+const LEVEL_CURVE = [0, 80, 120, 170, 220, 270, 320, 380, 450, 530, 620, 720, 830, 950, 1080, 1220];
+const GROWTH = { hp: 26, mp: 10, atk: 2, def: 2, spd: 0.5 };
+const MAX_LEVEL = 15;
+const MAX_SKILLS_EQUIP = 8;
+const SKILL_UP_COST = [1, 2, 3, 4]; // 升到 Lv2/3/4/5 各需技能点
+
+/* ---------- 五行相克 ---------- */
+const ELEMS = { 金:'剑兵', 木:'草木', 水:'柔音', 火:'刚劲', 土:'守心' };
+const ELEM_EMOJI = { 金:'⚔️', 木:'🌿', 水:'🌊', 火:'🔥', 土:'⛰️' };
+// 金克木 木克土 土克水 水克火 火克金
+const COUNTER = { 金:'木', 木:'土', 土:'水', 水:'火', 火:'金' };
+function counterBonus(attElem, defElem){
+  if(!attElem || !defElem) return 0;
+  if(COUNTER[attElem] === defElem) return 0.3;  // 克制
+  if(COUNTER[defElem] === attElem) return -0.3; // 被克
+  return 0;
+}
+
+/* ---------- 技能库 ---------- */
+// kind: dmg|heal|buff|debuff|guard ; elem: 五行 ; power: 1级基础倍率 ; req: 学习门槛
+const SKILLS = {
+  // —— 通用 ——
+  attack: { id:'attack', name:'普攻', desc:'以手中兵刃直取敌手', elem:null, cost:0, kind:'dmg', power:1.0, target:'single', rarity:'普通', maxLevel:5 },
+
+  // —— 剑（金） ——
+  poyunjian:  { id:'poyunjian', name:'破云剑', desc:'一剑破云，剑意凛然', elem:'金', cost:14, kind:'dmg', power:1.45, target:'single', rarity:'稀有', maxLevel:5, req:{char:'lengji'} },
+  zuixian:    { id:'zuixian', name:'醉仙剑', desc:'醉里挑灯，剑走偏锋', elem:'金', cost:20, kind:'dmg', power:1.9, target:'single', rarity:'极品', maxLevel:5, req:{talent:'jiandan'} },
+  lingyunjian:{ id:'lingyunjian', name:'凌云一剑', desc:'登凌云绝顶，剑气纵横', elem:'金', cost:30, kind:'dmg', power:1.2, target:'all', rarity:'极品', maxLevel:5, req:{talent:'jiandan'} },
+  chumo:      { id:'chumo', name:'除魔剑诀', desc:'浩然正气，斩妖除魔', elem:'金', cost:14, kind:'dmg', power:1.4, target:'single', rarity:'稀有', maxLevel:5, req:{char:'baiweiran'} },
+  tiangang:   { id:'tiangang', name:'天罡剑阵', desc:'布天罡剑阵，绞杀群敌', elem:'金', cost:28, kind:'dmg', power:1.05, target:'all', rarity:'极品', maxLevel:5, req:{destiny:'wuqu'} },
+  zuiyun_chu: { id:'zuiyun_chu', name:'醉凌云剑法·初', desc:'醉意朦胧，剑势未成，却已现锋芒', elem:'金', cost:16, kind:'dmg', power:1.5, target:'single', rarity:'仙品', maxLevel:5, req:{char:'lengji'} },
+  zuiyun_quan:{ id:'zuiyun_quan', name:'醉凌云剑法·全', desc:'天下至臻剑法，凌云之上一场大醉', elem:'金', cost:34, kind:'dmg', power:2.6, target:'single', rarity:'仙品', maxLevel:5, req:{char:'lengji'} },
+
+  // —— 医毒（木） ——
+  zhenjiu:    { id:'zhenjiu', name:'银针渡穴', desc:'以银针引渡经脉，回复气血', elem:'木', cost:16, kind:'heal', heal:70, healPct:0.6, target:'self', rarity:'稀有', maxLevel:5, req:{char:'mugui'} },
+  duanchang:  { id:'duanchang', name:'断肠散', desc:'毒入肺腑，持续蚀体', elem:'木', cost:18, kind:'dmg', power:0.7, poison:{dmg:16, turns:3}, target:'single', rarity:'稀有', maxLevel:5, req:{char:'mugui'} },
+  qiandu:     { id:'qiandu', name:'千毒蚀骨', desc:'万毒齐发，群敌皆中', elem:'木', cost:30, kind:'dmg', power:1.0, poison:{dmg:12, turns:2}, target:'all', rarity:'极品', maxLevel:5, req:{talent:'qihuang'} },
+  xuanhu:     { id:'xuanhu', name:'悬壶济世', desc:'大医精诚，起死回生', elem:'木', cost:28, kind:'heal', heal:120, healPct:0.9, target:'self', rarity:'极品', maxLevel:5, req:{talent:'qihuang'} },
+  chunfeng:   { id:'chunfeng', name:'春风化雨', desc:'温言软语，抚平创伤', elem:'木', cost:16, kind:'heal', heal:60, healPct:0.5, target:'self', rarity:'稀有', maxLevel:5, req:{talent:'linglong'} },
+  baicao:     { id:'baicao', name:'百草经', desc:'心法·尝百草以医苍生，回血并祛毒', elem:'木', cost:20, kind:'heal', heal:80, healPct:0.5, buff:{def:4}, turns:3, target:'self', rarity:'极品', maxLevel:5, req:{char:'mugui'} },
+
+  // —— 柔音心计（水） ——
+  xiaoli:     { id:'xiaoli', name:'笑里藏刀', desc:'笑靥之下暗藏杀机，暴击极高', elem:'水', cost:14, kind:'dmg', power:1.15, critBonus:28, target:'single', rarity:'稀有', maxLevel:5, req:{char:'suwenyan'} },
+  mianli:     { id:'mianli', name:'绵里藏针', desc:'暗中布阵，群敌皆伤', elem:'水', cost:24, kind:'dmg', power:0.9, target:'all', rarity:'极品', maxLevel:5, req:{char:'suwenyan'} },
+  mianli_jue: { id:'mianli_jue', name:'绵里藏针诀', desc:'心法·外柔内刚，受击反弹', elem:'水', cost:16, kind:'buff', buff:{def:6, eva:8}, turns:3, target:'self', rarity:'极品', maxLevel:5, req:{char:'suwenyan'} },
+  gongxin:    { id:'gongxin', name:'攻心', desc:'舌灿莲花，瓦解敌方战意', elem:'水', cost:12, kind:'debuff', debuff:{atk:8}, turns:3, target:'single', rarity:'稀有', maxLevel:5, req:{talent:'shezhan'} },
+  dongcha:    { id:'dongcha', name:'洞察', desc:'天机在握，先手制敌', elem:'水', cost:12, kind:'buff', buff:{spd:6, eva:10}, turns:3, target:'self', rarity:'稀有', maxLevel:5, req:{destiny:'tianji'} },
+  tayun:      { id:'tayun', name:'踏云步', desc:'身轻如燕，踏云而行', elem:'水', cost:12, kind:'buff', buff:{spd:6, eva:12}, turns:3, target:'self', rarity:'稀有', maxLevel:5, req:{talent:'jinghong'} },
+  qingshang:  { id:'qingshang', name:'清商曲', desc:'商音入耳，伤敌无形', elem:'水', cost:14, kind:'dmg', power:1.4, target:'single', rarity:'稀有', maxLevel:5, req:{destiny:'wenqu'} },
+  pozhen:     { id:'pozhen', name:'破阵乐', desc:'金戈铁马，破阵杀伐', elem:'水', cost:24, kind:'dmg', power:1.1, target:'all', rarity:'极品', maxLevel:5, req:{destiny:'wenqu'} },
+  fengqiuhuang:{ id:'fengqiuhuang', name:'凤求凰', desc:'琴音疗心，回复气血', elem:'水', cost:20, kind:'heal', heal:90, healPct:0.7, target:'self', rarity:'稀有', maxLevel:5, req:{destiny:'wenqu'} },
+
+  // —— 刚劲（火） ——
+  fengming:   { id:'fengming', name:'凤鸣', desc:'凤鸣九天，威压敌人', elem:'火', cost:14, kind:'dmg', power:1.4, target:'single', rarity:'稀有', maxLevel:5, req:{char:'suqianyu'} },
+  junlin:     { id:'junlin', name:'君临', desc:'帝王威仪，攻防俱增', elem:'火', cost:18, kind:'buff', buff:{atk:6, def:4}, turns:3, target:'self', rarity:'稀有', maxLevel:5, req:{destiny:'ziwei'} },
+  fengwu:     { id:'fengwu', name:'凤舞九天', desc:'凤凰振翅，火雨焚敌', elem:'火', cost:28, kind:'dmg', power:1.1, target:'all', rarity:'极品', maxLevel:5, req:{destiny:'ziwei'} },
+  cangsheng:  { id:'cangsheng', name:'苍生一诺', desc:'为苍生执剑，剑光席卷群敌', elem:'火', cost:26, kind:'dmg', power:0.95, target:'all', rarity:'极品', maxLevel:5, req:{destiny:'qisha'} },
+  fanyun:     { id:'fanyun', name:'翻云覆雨', desc:'权谋如雨，覆盖群敌', elem:'火', cost:22, kind:'dmg', power:0.9, target:'all', rarity:'极品', maxLevel:5, req:{char:'fangni'} },
+  quanqing:   { id:'quanqing', name:'权倾天下', desc:'倾天下之力，一击定乾坤', elem:'火', cost:20, kind:'dmg', power:1.8, target:'single', rarity:'极品', maxLevel:5, req:{destiny:'tanlang'} },
+  kaishan:    { id:'kaishan', name:'开山掌', desc:'掌风如斧，开山裂石', elem:'火', cost:14, kind:'dmg', power:1.4, target:'single', rarity:'稀有', maxLevel:5, req:{destiny:'qisha'} },
+  fuhu:       { id:'fuhu', name:'伏虎拳', desc:'拳劲刚猛，伏虎降龙', elem:'火', cost:20, kind:'dmg', power:1.75, target:'single', rarity:'稀有', maxLevel:5, req:{talent:'tongjin'} },
+  bengtian:   { id:'bengtian', name:'崩天裂地', desc:'双拳齐出，地动山摇', elem:'火', cost:28, kind:'dmg', power:1.0, target:'all', rarity:'极品', maxLevel:5, req:{destiny:'qisha'} },
+
+  // —— 守心（土） ——
+  dixinshu:   { id:'dixinshu', name:'帝王心术', desc:'心法·摄人心魄，令群敌胆寒', elem:'土', cost:20, kind:'debuff', debuff:{atk:5, def:3}, turns:3, target:'all', rarity:'极品', maxLevel:5, req:{char:'fangni'} },
+  haoran:     { id:'haoran', name:'浩然正气', desc:'养天地正气，回复并强身', elem:'土', cost:18, kind:'heal', heal:55, healPct:0.4, buff:{def:5}, turns:3, target:'self', rarity:'稀有', maxLevel:5, req:{char:'baiweiran'} },
+  haoran_jue: { id:'haoran_jue', name:'浩然正气诀', desc:'心法·正气凛然，百邪不侵', elem:'土', cost:20, kind:'buff', buff:{def:8, crit:8}, turns:3, target:'self', rarity:'极品', maxLevel:5, req:{char:'baiweiran'} },
+  jianxin:    { id:'jianxin', name:'剑心通明', desc:'心剑合一，会心大增', elem:'土', cost:16, kind:'buff', buff:{crit:20}, turns:3, target:'self', rarity:'稀有', maxLevel:5, req:{char:'lengji'} },
+  tiebi:      { id:'tiebi', name:'铁壁', desc:'武曲之姿，固若金汤', elem:'土', cost:12, kind:'buff', buff:{def:8}, turns:3, target:'self', rarity:'稀有', maxLevel:5, req:{destiny:'wuqu'} },
+  fengyi:     { id:'fengyi', name:'凤仪心经', desc:'心法·凤仪天下，攻守兼备', elem:'土', cost:18, kind:'buff', buff:{atk:6, def:5}, turns:3, target:'self', rarity:'极品', maxLevel:5, req:{char:'suqianyu'} },
+  wuxiang:    { id:'wuxiang', name:'小无相功', desc:'心法·万法归一，攻守随心', elem:'土', cost:16, kind:'buff', buff:{atk:5, def:4, crit:6}, turns:3, target:'self', rarity:'极品', maxLevel:5, req:null },
+};
+
+/* ---------- 角色技能配置 ---------- */
+// starter: 开局装配 ; obtainable: 剧情可学（受 req 门槛）
+const KITS = {
+  mugui:     { starter:['zhenjiu','duanchang','baicao'], obtainable:['qiandu','xuanhu','chunfeng','gongxin','tayun'] },
+  lengji:    { starter:['poyunjian','zuiyun_chu','jianxin'], obtainable:['cangsheng','zuixian','lingyunjian','zuiyun_quan','tayun'] },
+  suqianyu:  { starter:['fengming','fengyi','junlin'], obtainable:['fengwu','gongxin','tiebi'] },
+  suwenyan:  { starter:['xiaoli','mianli_jue','chunfeng'], obtainable:['mianli','gongxin','dongcha','tayun'] },
+  fangni:    { starter:['fanyun','dixinshu','quanqing'], obtainable:['gongxin','jianxin','tayun'] },
+  baiweiran: { starter:['chumo','haoran_jue','haoran'], obtainable:['tiangang','tiebi','jianxin'] },
+  剑道:      { starter:['poyunjian','zuixian'], obtainable:['lingyunjian','jianxin','tayun'] },
+  拳掌:      { starter:['kaishan','fuhu'], obtainable:['bengtian','cangsheng','tiebi'] },
+  岐黄:      { starter:['zhenjiu','duanchang'], obtainable:['qiandu','xuanhu','baicao','chunfeng'] },
+  音律:      { starter:['qingshang','pozhen'], obtainable:['fengqiuhuang','gongxin','tayun'] },
+};
+
+/* ---------- 命格（自建角色自由选；主人公系统绑定） ---------- */
+const DESTINIES = [
+  { id:'ziwei', name:'紫微帝星', star:'帝王之星', emoji:'👑', tag:'帝王气象',
+    desc:'帝星入命，天生统御之才，气血攻防俱增。', mod:{ hpMul:1.15, atkMul:1.08, defMul:1.08 }, skill:'junlin' },
+  { id:'tanlang', name:'贪狼星', star:'杀伐之星', emoji:'🐺', tag:'杀伐果断',
+    desc:'贪狼主杀伐，出手狠辣，会心骤增。', mod:{ atkMul:1.15, critAdd:8, dmgTakenMul:1.06 }, skill:'quanqing' },
+  { id:'qisha', name:'七杀星', star:'孤勇之星', emoji:'⚔️', tag:'孤勇无双',
+    desc:'七杀为将星，攻势无双，略疏防守。', mod:{ atkMul:1.2, critAdd:5, defMul:0.94 }, skill:'cangsheng' },
+  { id:'wenqu', name:'文曲星', star:'才思之星', emoji:'📜', tag:'才思敏捷',
+    desc:'文曲主才情，内力绵长，身法飘忽。', mod:{ evaAdd:12, mpMul:1.2, dmgDealtMul:1.04 }, skill:'qingshang' },
+  { id:'wuqu', name:'武曲星', star:'刚猛之星', emoji:'🛡️', tag:'铜墙铁壁',
+    desc:'武曲气血浑厚，防御惊人。', mod:{ hpMul:1.2, defMul:1.12 }, skill:'tiebi' },
+  { id:'tianji', name:'天机星', star:'洞察之星', emoji:'🔭', tag:'洞察天机',
+    desc:'天机可窥天意，先手制人，易得线索。', mod:{ spdAdd:6, evaAdd:10, firstStrike:true, clue:true }, skill:'dongcha' },
+];
+
+/* ---------- 天赋 ---------- */
+const TALENTS = [
+  { id:'jiandan', name:'剑胆琴心', emoji:'🎻', tag:'武学增幅', desc:'武学造诣超群，攻击技能伤害提升。', mod:{ dmgDealtMul:1.12 }, skill:'zuixian' },
+  { id:'qihuang', name:'岐黄圣手', emoji:'🌿', tag:'妙手回春', desc:'深通医理，治疗大增，战后额外回血。', mod:{ healMul:1.5, battleEndHeal:0.15 }, skill:'xuanhu' },
+  { id:'tongjin', name:'铜筋铁骨', emoji:'⛰️', tag:'金刚不坏', desc:'筋骨如铁，防御大增，所受伤害降低。', mod:{ defMul:1.2, dmgTakenMul:0.9 }, skill:'fuhu' },
+  { id:'shezhan', name:'舌灿莲花', emoji:'💬', tag:'能言善辩', desc:'能言善辩，剧情说服常奏奇效。', mod:{ persuade:true }, skill:'gongxin' },
+  { id:'linglong', name:'玲珑心窍', emoji:'💠', tag:'心细如发', desc:'七窍玲珑，易得线索，闪避提升。', mod:{ clue:true, evaAdd:8 }, skill:'chunfeng' },
+  { id:'dongchao', name:'洞察秋毫', emoji:'👁️', tag:'先发制人', desc:'观敌于先，会心骤增。', mod:{ critAdd:10, firstStrike:true }, skill:'jianxin' },
+  { id:'jinghong', name:'惊鸿身法', emoji:'🕊️', tag:'身轻如燕', desc:'身法出众，闪避与速度大增。', mod:{ evaAdd:18, spdAdd:5 }, skill:'tayun' },
+  { id:'baizhe', name:'百折不挠', emoji:'🔥', tag:'向死而生', desc:'气血浑厚，绝境可留一口气。', mod:{ hpMul:1.15, revive:true }, skill:null },
+];
+
+/* ---------- 六位主人公（命格/天赋/心法系统绑定） ---------- */
+const CHARACTERS = [
+  { id:'mugui', name:'慕归', role:'清冷医女', emoji:'🌿', grad:['#2f4a3a','#14241c'], cp:'冷刃',
+    premise:'十年前，其师（先皇后御医）随宫变失踪，只留半枚染血玉佩。她悬壶十载，为寻旧案真相与师父下落而来。',
+    desc:'外表妖艳、内心纯白的清冷医女，一生在忍耐与委屈中成长。渴望被爱，却总把爱人推远。',
+    destiny:'wenqu', talent:'qihuang',
+    stats:{ hp:225, mp:70, atk:14, def:10, spd:16, crit:15, eva:10 } },
+  { id:'lengji', name:'冷寂', role:'热血侠客', emoji:'🗡️', grad:['#3a4a6b','#161c2b'], cp:'苏温言',
+    premise:'十年前冷家满门一百三十七口尽葬火海，他与兄长冷刃逃出生天。为查灭门真凶，也为守护苍生与所爱而来。',
+    desc:'为苍生执剑的热血侠客，与苏温言双向救赎，与冷刃兄弟情深。开局即怀醉凌云剑法（未成熟）。',
+    destiny:'qisha', talent:'jiandan',
+    stats:{ hp:265, mp:55, atk:19, def:13, spd:18, crit:12, eva:15 } },
+  { id:'suqianyu', name:'苏浅语', role:'北阙长公主', emoji:'👑', grad:['#6b3a3a','#241414'], cp:'方逆',
+    premise:'十年前父皇母后死得蹊跷，幼弟登基后摄政王专权。她以骄纵为甲，暗中蓄力，与方逆相爱相杀而来。',
+    desc:'娇纵敏感、嘴上不饶人的长公主。与摄政王方逆纠缠一生，在爹系男友引领下成长。',
+    destiny:'ziwei', talent:'shezhan',
+    stats:{ hp:245, mp:65, atk:16, def:12, spd:15, crit:18, eva:12 } },
+  { id:'suwenyan', name:'苏温言', role:'北阙小公主', emoji:'🌸', grad:['#5b3a6b','#201424'], cp:'冷寂',
+    premise:'表面天真无邪，实则清醒独立。她不信母后死于意外，带着母后残帛上的疑点，挽着姐姐的手赴宴而来。',
+    desc:'看似人畜无害的小公主，善于笼络人心。与冷寂纯爱相伴，事业线藏而不露。',
+    destiny:'tianji', talent:'linglong',
+    stats:{ hp:235, mp:68, atk:15, def:11, spd:17, crit:15, eva:18 } },
+  { id:'fangni', name:'方逆', role:'摄政王', emoji:'⚔️', grad:['#4a3a2a','#1c1408'], cp:'苏浅语',
+    premise:'十年前他亲眼目睹宫变，却只能匍匐求生。忍辱十年、步步为营，布下凌云宴，为复仇也为护她周全而来。',
+    desc:'权谋布局者，疯批又深情，为所爱之人铺路一生。六人中初始战力最高。',
+    destiny:'tanlang', talent:'dongchao',
+    stats:{ hp:275, mp:60, atk:20, def:14, spd:13, crit:14, eva:8 } },
+  { id:'baiweiran', name:'白未染', role:'正道高徒', emoji:'❄️', grad:['#3a4a55','#141c22'], cp:'巫弦乐',
+    premise:'正道高岭之花，道德无瑕。三年前与魔教圣女巫弦乐有过一段恨海情天。师门命其查魔教异动，被迫赴约而来。',
+    desc:'高岭之花，道德感极强。与巫弦乐在恐惧与爱意中沉沦，愧疚难当。',
+    destiny:'wuqu', talent:'tongjin',
+    stats:{ hp:255, mp:62, atk:17, def:13, spd:16, crit:13, eva:11 } },
+];
+
+const AVATARS = { mugui:'🌿', lengji:'🗡️', suqianyu:'👑', suwenyan:'🌸', fangni:'⚔️', baiweiran:'❄️', custom:'🎭' };
+
+/* ---------- 自建角色 · 出身/武学 ---------- */
+const CUSTOM_ROLES = [
+  { id:'youxia', name:'游侠', emoji:'🏹', desc:'浪迹天涯，快意恩仇', mod:{ spdAdd:2, evaAdd:3 } },
+  { id:'biaoke', name:'镖客', emoji:'🧱', desc:'走南闯北，护镖为生', mod:{ defAdd:2, hpAdd:20 } },
+  { id:'shuoshu', name:'说书人', emoji:'📖', desc:'胸有丘壑，口若悬河', mod:{ mpAdd:20, critAdd:3 } },
+  { id:'anwei', name:'暗卫', emoji:'🗡️', desc:'藏于暗处，一击必杀', mod:{ critAdd:5, spdAdd:2 } },
+  { id:'yaoshi', name:'药师', emoji:'🌿', desc:'悬壶济世，通晓百草', mod:{ hpAdd:10, healMul:1.1 } },
+  { id:'qinshi', name:'琴师', emoji:'🎶', desc:'抚琴而歌，以音入武', mod:{ mpAdd:15, evaAdd:2 } },
+];
+const CUSTOM_STYLES = [
+  { id:'剑道', name:'剑道', emoji:'⚔️', desc:'刚柔并济，攻伐无双', mod:{ atkMul:1.08 } },
+  { id:'拳掌', name:'拳掌', emoji:'👊', desc:'大开大合，拳拳到肉', mod:{ atkMul:1.05, hpMul:1.05 } },
+  { id:'岐黄', name:'岐黄', emoji:'🌿', desc:'以医入武，毒术救人', mod:{ healMul:1.2 } },
+  { id:'音律', name:'音律', emoji:'🎶', desc:'以音化剑，远近皆宜', mod:{ mpMul:1.15, evaAdd:4 } },
+];
+
+/* ---------- 物品 ---------- */
+// type: hp(回血) mp(回内) weapon(武器) armor(防具) acc(饰品)
+const ITEMS = {
+  jinchuang:  { id:'jinchuang', name:'金疮药', type:'hp', rarity:'普通', price:20, desc:'寻常伤药，回复 40% 气血', effect:{ healPct:0.4 } },
+  yulu:       { id:'yulu', name:'玉露丸', type:'hp', rarity:'稀有', price:60, desc:'上品灵药，回复 65% 气血', effect:{ healPct:0.65 } },
+  jiuzhuan:   { id:'jiuzhuan', name:'九转还魂丹', type:'hp', rarity:'极品', price:150, desc:'起死回生，回复全部气血', effect:{ healPct:1.0 } },
+  xiantian:   { id:'xiantian', name:'先天一气丹', type:'hp', rarity:'仙品', price:320, desc:'仙家丹药，气血内力尽复', effect:{ healPct:1.0, mpPct:1.0 } },
+  huiqi:      { id:'huiqi', name:'回气散', type:'mp', rarity:'普通', price:20, desc:'回复 40 点内力', effect:{ mpAmt:40 } },
+  ningshen:   { id:'ningshen', name:'凝神丹', type:'mp', rarity:'稀有', price:80, desc:'凝神静气，回复全部内力', effect:{ mpPct:1.0 } },
+  dayao:      { id:'dayao', name:'大还丹', type:'hp', rarity:'极品', price:120, desc:'回复 50% 气血与内力', effect:{ healPct:0.5, mpPct:0.5 } },
+  xianshou:   { id:'xianshou', name:'仙寿丸', type:'hp', rarity:'仙品', price:400, desc:'续命仙丸，气血内力尽复', effect:{ healPct:1.0, mpPct:1.0 } },
+
+  tiesword:   { id:'tiesword', name:'铁剑', type:'weapon', rarity:'普通', price:40, desc:'寻常兵刃', effect:{ atk:3 } },
+  qingfeng:   { id:'qingfeng', name:'青锋剑', type:'weapon', rarity:'稀有', price:120, desc:'吹毛断发', effect:{ atk:7 } },
+  lingyunsw:  { id:'lingyunsw', name:'凌云神剑', type:'weapon', rarity:'极品', price:300, desc:'相传出自凌云台', effect:{ atk:13 } },
+  xuantie:    { id:'xuantie', name:'玄铁重剑', type:'weapon', rarity:'仙品', price:700, desc:'重剑无锋，大巧不工', effect:{ atk:20, def:2 } },
+
+  buyi:       { id:'buyi', name:'粗布衣', type:'armor', rarity:'普通', price:30, desc:'寻常衣物', effect:{ def:2 } },
+  ruanjia:    { id:'ruanjia', name:'软猬甲', type:'armor', rarity:'稀有', price:100, desc:'刀枪难入', effect:{ def:5 } },
+  jinjia:     { id:'jinjia', name:'金丝软甲', type:'armor', rarity:'极品', price:280, desc:'水火不侵', effect:{ def:9, hp:30 } },
+  tiancan:    { id:'tiancan', name:'天蚕宝甲', type:'armor', rarity:'仙品', price:650, desc:'刀枪不入', effect:{ def:15, hp:80 } },
+
+  xiangnang:  { id:'xiangnang', name:'香囊', type:'acc', rarity:'普通', price:30, desc:'辟邪香囊', effect:{ eva:3 } },
+  yuhuan:     { id:'yuhuan', name:'暖玉环', type:'acc', rarity:'稀有', price:90, desc:'温润养人', effect:{ crit:5 } },
+  jinzhi:     { id:'jinzhi', name:'金枝玉叶', type:'acc', rarity:'极品', price:260, desc:'贵气逼人', effect:{ spd:4, crit:6 } },
+  fengguan:   { id:'fengguan', name:'凤冠霞帔', type:'acc', rarity:'仙品', price:600, desc:'母仪天下', effect:{ eva:8, crit:8, spd:5 } },
+};
+const RARITY_COLOR = { '普通':'#b7a88f', '稀有':'#6fa8d8', '极品':'#b07ce8', '仙品':'#f3d9a4' };
+const RARITY_ORDER = ['普通','稀有','极品','仙品'];
+
+/* ---------- 商店 ---------- */
+const SHOPS = {
+  biancheng: { name:'边城杂货铺', stock:['jinchuang','huiqi','buyi','tiesword','xiangnang'] },
+  huangcheng:{ name:'皇城珍宝阁', stock:['yulu','ningshen','dayao','qingfeng','ruanjia','yuhuan','jinzhi'] },
+  heishi:    { name:'黑市', stock:['jiuzhuan','dayao','lingyunsw','jinjia','jinzhi','xianshou'] },
+};
+
+/* ---------- 敌人（含五行 + 狠话） ---------- */
+const ENEMIES = {
+  shanzei:     { name:'山贼', title:'拦路剪径', emoji:'🪓', elem:'火', hp:70, atk:12, def:4, spd:8, crit:5, eva:2, xp:26, gold:14, banter:['此山是我开！','把钱交出来，饶你不死！'] },
+  shanzei_tou: { name:'山贼头目', title:'聚啸山林', emoji:'🔪', elem:'火', hp:140, atk:17, def:7, spd:10, crit:8, eva:3, xp:52, gold:32, banter:['敢闯爷爷的地盘？','看刀！'] },
+  shiwei:      { name:'朝堂侍卫', title:'奉旨捉拿', emoji:'🛡️', elem:'金', hp:100, atk:16, def:9, spd:11, crit:6, eva:4, xp:38, gold:18, banter:['奉摄政王令，拿下！'] },
+  mojiao:      { name:'魔教教徒', title:'邪焰肆虐', emoji:'🔥', elem:'水', hp:90, atk:16, def:6, spd:12, crit:9, eva:6, xp:34, gold:16, banter:['以尔之血，祭我圣火！'] },
+  mojiao_hu:   { name:'魔教护法', title:'血祭苍生', emoji:'💀', elem:'土', hp:180, atk:21, def:10, spd:13, crit:12, eva:7, xp:80, gold:46, banter:['教主有令，挡者皆杀！'] },
+  sishi:       { name:'死士', title:'视死如归', emoji:'🎭', elem:'火', hp:85, atk:18, def:5, spd:14, crit:10, eva:5, xp:32, gold:9, banter:['……','杀。'] },
+  yingwei:     { name:'影卫', title:'如影随形', emoji:'🌑', elem:'水', hp:115, atk:19, def:8, spd:17, crit:12, eva:14, xp:48, gold:22, banter:['你已无路可退。'] },
+  wuxianyue:   { name:'巫弦乐', title:'魔教圣女', emoji:'🌙', elem:'水', hp:280, atk:25, def:12, spd:20, crit:15, eva:12, xp:180, gold:0, boss:true, banter:['白未染，别来无恙啊。','今日，我要你死心。'] },
+  lengren:     { name:'冷刃', title:'无主之刃', emoji:'🗡️', elem:'金', hp:230, atk:23, def:11, spd:19, crit:16, eva:15, xp:130, gold:0, boss:true, banter:['阿寂，让哥看看你的剑。'] },
+  lingyunzhu:  { name:'凌云阁主', title:'幕后之人', emoji:'☁️', elem:'土', hp:340, atk:27, def:14, spd:16, crit:16, eva:10, xp:260, gold:0, boss:true, banter:['这一局，我布了十年。','你以为你能赢我？'] },
+  huangdi:     { name:'北阙新帝', title:'九五之尊', emoji:'🐉', elem:'金', hp:310, atk:26, def:15, spd:15, crit:14, eva:8, xp:240, gold:0, boss:true, banter:['逆臣，受死！'] },
+};
+
+/* ---------- 地图区域 ---------- */
+const REGIONS = [
+  { id:'lingyuntai', name:'凌云台', emoji:'☁️', unlock:null, desc:'十年前旧案的所在，故事的起点。', shop:null, explore:true },
+  { id:'biancheng', name:'边城', emoji:'🏘️', unlock:'ch1_end', desc:'慕归隐居的边陲小城，商旅往来。', shop:'biancheng', explore:true },
+  { id:'huangcheng', name:'北阙皇城', emoji:'🏯', unlock:'ch3_end', desc:'九重宫阙，暗藏朝堂杀机。', shop:'huangcheng', explore:true },
+  { id:'lingjia', name:'冷家旧宅', emoji:'🏚️', unlock:'ch2_end', desc:'十年前被焚的冷家府邸，残垣犹存。', shop:null, explore:true },
+  { id:'yaowanggu', name:'药王谷', emoji:'🌿', unlock:'ch2_end', desc:'隐世医谷，百草繁茂。', shop:null, explore:true },
+  { id:'mojiao', name:'魔教总坛', emoji:'🌋', unlock:'ch3_end', desc:'邪焰滔天之地，生人勿近。', shop:'heishi', explore:true },
+];
+
+/* ---------- 机遇事件（探索触发） ---------- */
+const ENCOUNTERS = [
+  { id:'e_gold1', weight:5, text:'你在破庙中发现一箱前人留下的银两。', fx:{ gold:80 } },
+  { id:'e_gold2', weight:4, text:'路遇富商遭劫，你出手相助，获赠厚礼。', fx:{ gold:120, reputation:{ 江湖:1 } } },
+  { id:'e_item1', weight:4, text:'山崖边采到一株百年灵芝。', fx:{ item:{ yulu:1 } } },
+  { id:'e_item2', weight:3, text:'溪边拾得一枚温润的暖玉环。', fx:{ item:{ yuhuan:1 } } },
+  { id:'e_battle1', weight:5, text:'几个山贼不知死活地拦住了你！', battle:['shanzei','shanzei'] },
+  { id:'e_battle2', weight:3, text:'一名魔教教徒正在残害无辜，你怒火中烧。', battle:['mojiao'] },
+  { id:'e_skill', weight:2, text:'你在石壁上悟得一门武学残篇！', fx:{ skill:true } },
+  { id:'e_rep1', weight:4, text:'你惩治了欺压百姓的恶霸，江湖人称快。', fx:{ reputation:{ 江湖:2 } } },
+  { id:'e_rep2', weight:3, text:'你行侠仗义，名门正派对你刮目相看。', fx:{ reputation:{ 门派:2 } } },
+  { id:'e_rep3', weight:3, text:'你为朝廷缉拿要犯，得了份人情。', fx:{ reputation:{ 朝堂:2 } } },
+  { id:'e_rep4', weight:3, text:'你不慎冲撞了官府，惹下麻烦。', fx:{ reputation:{ 朝堂:-2 } } },
+  { id:'e_rep5', weight:3, text:'你与魔教之人交手，结下了梁子。', fx:{ reputation:{ 门派:-1, 江湖:-1 } } },
+];
+
+/* ---------- 战斗场景词库 / 狠话 ---------- */
+const SCENE_WORDS = {
+  openers: ['风卷残云，杀气四起。','寒鸦惊飞，杀气如霜。','战意如潮，一触即发。','刀光剑影，生死一线。','山雨欲来，风满楼。'],
+  youHit: ['你{skill}，直取{enemy}，{hit}。','你{skill}，{hit}，{enemy}身形一晃。','你{skill}，攻势如虹，{enemy}{hit}。'],
+  foeHit: ['{enemy}{skill}，{hit}。','{enemy}一招{skill}，{hit}。','{enemy}{skill}，来势凶猛，{hit}。'],
+  dodge: ['你足尖一点，堪堪避开。','你身形一侧，险险躲过。','你早有防备，从容闪避。'],
+  counterOn: ['五行相克！你占据上风，一击重创！','你的招式恰克其功法，威力倍增！'],
+  counterOff: ['对方功法克制于你，这一击威力大减。'],
+  victory: ['敌手倒地，尘埃落定。','胜负已分，你收势而立。','血染衣襟，而你仍立于原地。'],
+  defeat: ['眼前一黑，你重重倒地。','气力耗尽，你单膝跪地，再难支撑。'],
+  flee: ['你且战且退，寻隙脱身。'],
+  taunt: ['「{line}」对方厉声道。'],
+};
+
+/* ============================================================
+   《醉凌云 · 江湖冒险》v2.0 —— 剧情数据（上）
+   专属开场 / CP 感情线 / 序章 / 第一章 / 第二章
+   ============================================================ */
+
+/* ---------- 专属开场 ---------- */
+const PROLOGUES = {
+  mugui:
+`清冷医女慕归，十年间在边城悬壶，救人无数，却救不了自己那颗千疮百孔的心。
+十年前的宫变之夜，她的师父——先皇后的御医——随那场大火一同消失，只留下半枚染血的玉佩。
+今夜，一纸烫金的「凌云帖」送上门来，附着的，正是那半枚玉佩的另一半。
+
+「登凌云台，饮醉凌云，可知当年真相。」
+她指尖抚过玉佩断口，第一次，那双平静如水的眼睛起了波澜。`,
+  lengji:
+`热血侠客冷寂，为苍生执剑，走遍大江南北，却始终查不清十年前自家灭门的真凶。
+那一夜，冷家满门一百三十七口，尽数葬于火海。兄长冷刃抱着他逃出，从此再未提过那一晚。
+今日，「凌云帖」至，帖上只写着一行字——
+
+「灭门之夜，凌云台上，有人看见了全部。」
+他握紧剑柄，眼底杀意如霜。而腰间那柄剑，正是冷家祖传的「醉凌云剑法」——只是剑势未成，尚欠火候。`,
+  suqianyu:
+`北阙长公主苏浅语，生来娇纵，世人皆道她蛮横无脑。
+唯有她自己清楚，这骄纵是铠甲——十年前父皇母后死得蹊跷，幼弟登基后，摄政王方逆独揽大权，她只能装作纨绔，暗中积蓄力量。
+这一日，方逆竟亲自将「凌云帖」递到她面前，笑得意味深长：
+
+「长公主，可敢随本王，赴一场十年前的旧约？」
+她扬手打翻了茶盏，心却跳得厉害。`,
+  suwenyan:
+`北阙小公主苏温言，人前是天真无邪的小白兔，人人都愿护着她。
+可谁也不知道，她枕头底下压着一块母后留下的残帛，上面写着当年宫变的疑点。
+她从不信那场大火只是「意外」，更不信方逆只是「忠心辅政」。
+如今，她挽着姐姐的手，随「凌云帖」踏上赴宴之路，笑得人畜无害——
+
+真正的棋局，才刚刚开始。`,
+  fangni:
+`摄政王方逆，权倾朝野，翻手为云覆手为雨。
+世人只道他疯批狠辣，却不知他这十年，忍辱负重、步步为营，只为布下今日这场凌云宴。
+十年前的宫变，他亲眼看着所爱之人的亲人葬身火海，而自己，只能匍匐在仇人脚下求生。
+如今，仇人、故人、旧案，都被他「请」上了凌云台。
+
+这一局，他要让所有人，为那一夜陪葬——除了她。`,
+  baiweiran:
+`正道高徒白未染，是师门中公认的高岭之花，道德无瑕，剑心澄明。
+可只有他自己知道，三年前，他曾与魔教圣女巫弦乐有过一段恨海情天，最终亲手将长剑抵上她的咽喉，又在她转身离去时，心痛如绞。
+如今魔教异动，师门命他下山查探。而「凌云帖」上，赫然绘着一支他再熟悉不过的骨笛。
+
+他闭了闭眼——原来，这场劫，从来都躲不过。`,
+  custom:
+`你不记得自己是谁，也不记得来处。
+唯一的记忆，是一片冲天的火光，和一个模糊的声音：「登凌云台，饮醉凌云，你便能想起一切。」
+于是你带上这纸「凌云帖」，踏上了北去的路。
+
+江湖浩大，而你，只是其中一个无名之人。
+但今夜之后，天下都会记得你的名字。`,
+};
+
+/* ---------- CP 感情线（第二章插入） ---------- */
+const ROMANCE = {
+  mugui:
+`冷刃不知何时站到了你身后，一言不发，却将你的药箱背到了自己肩上。
+「你总把所有人都推开。」他的声音很轻，「可我不是所有人。」
+你攥紧药箱带子，鼻尖发酸。这十年来，他是唯一一个，无论你冷脸多少次，都会回头找你的人。
+「冷刃，」你终于开口，「若有一天我不得不走，你别跟着我。」
+他顿了顿，只回了三个字：「我偏不。」`,
+  lengji:
+`苏温言卸下了一贯的甜笑，在月光下静静地看着你。
+「冷寂，」她轻声说，「他们都当我是小白兔，只有你，看得到我手里的刀。」
+你心头一软，脱下外袍披在她肩上：「温言，这世道再险，也有我替你挡着。」
+她忽然笑了，那笑与往日不同，是真正的、只属于你的笑。
+「那你可得说话算话。」`,
+  suqianyu:
+`方逆把你抵在廊柱边，眼底翻涌着你看不懂的情绪。
+「长公主，」他语气冷得吓人，「下次再敢独自犯险，本王就把你锁在宫里。」
+你仰起头，不甘示弱：「方逆，你凭什么管我？」
+他忽然沉默，半晌，才哑声道：「就凭……我把你写进了我未来的每一页。」
+你愣住了，心口那处，忽然疼得厉害。`,
+  suwenyan:
+`你没想到，会在深夜的凌云台撞见冷寂。他正独自练剑，剑光映着月光，孤傲又落寞。
+「睡不着？」他收剑，朝你走来。
+你点点头，又摇摇头。他轻轻叹了口气，伸手揉了揉你的发顶：「别怕，我在。」
+那一瞬间，你忽然觉得，这乱世里，只要有他在，天塌下来也不怕。`,
+  fangni:
+`你翻着十年的布局图，指尖停在那个始终空着的位置。
+门被推开，苏浅语提着灯站在门口，神情别扭：「方逆，你是不是又一夜没睡？」
+你抬眼看她，忽然笑了：「在等你来管我。」
+她红了脸，丢下一句「谁管你」，转身欲走，却又在门口停住，小声补了一句：「……记得喝药。」`,
+  baiweiran:
+`巫弦乐把骨笛横在你颈边，笑得凉薄：「白未染，当年你刺我那一剑，我记了三年。」
+你握剑的手，止不住地颤抖。正邪、师门、愧疚与爱意，如潮水般将你淹没。
+「……弦乐。」你终于唤出那个名字，「那一剑，我后悔了三年。」
+她手上的骨笛，几不可察地抖了一下。`,
+  custom:
+`一位神秘人于夜色中现身，将一壶酒推到你面前。
+「无名之人，」他笑道，「这江湖，从来都是强者的棋局。你想当棋子，还是执子之人？」
+你接过酒壶，一饮而尽：「我想当，掀翻棋盘的人。」
+他抚掌大笑，身影没入夜色：「好。那便让这天下，都记住你的名字。」`,
+};
+
+/* ---------- 专属剧情（第三章插入） ---------- */
+const EXCLUSIVE = {
+  mugui:
+`你循着旧案线索，终于找到师父当年埋下的药庐暗格。里面是一本手札，最后一页写着：
+「余以『醉凌云』一方，救先皇后于垂危。然此方亦为续命至宝，引魔教觊觎。若余遭不测，望徒儿切记——医者，须分善恶，不可因私废公。」
+手札之外，还有半瓶你自幼熟悉的药香。原来师父从未抛弃你，他只是……去守护了更大的秘密。`,
+  lengji:
+`兄长冷刃终于开口，说出十年前灭门之夜的真相：冷家本是先帝暗卫之后，因手握「醉凌云」古方与传国玉玺的下落，遭人灭口。那一夜，兄长亲手把你塞进密道，又替仇人做了十年的「刀」，只为有朝一日能接近真相、护你周全。
+「阿寂，」他声音嘶哑，「哥这双手，早就不干净了。可你要走的，是正道。」
+你握住剑，只觉那柄未成形的「醉凌云」，忽然有了重量。`,
+  suqianyu:
+`你在偏殿找到母后留下的凤钗，钗中藏着一卷血书。原来母后早已察觉宫变，只是为护你与弟弟周全，甘愿赴死。
+血书末尾写着：「浅语，莫要怨恨，也莫要复仇。娘只要你，好好活着。」
+你攥着凤钗，眼泪终于决堤。那个嚣张跋扈的长公主，此刻不过是个没了娘的孩子。`,
+  suwenyan:
+`你终于拼齐了母后残帛上的真相。当年宫变，母后并非死于大火，而是为救你姐姐与幼弟，主动饮下了毒酒。
+「温言最是聪明，」残帛上写着，「只是娘怕你，把这份聪明，用错了地方。」
+你攥紧残帛，收起一贯的甜笑。这一次，你要用你的方式，守住所有该守的人。`,
+  fangni:
+`你在密室中摊开十年的布局图。每一笔，都是忍辱与算计；每一划，都蘸着血与仇。
+可图的角落，却始终空着一块——那是留给她的位置。
+你忽然想起十年前那个雨夜，她哭红的眼睛。你曾发誓要为她铺平前路，哪怕这条路，铺满你自己的尸骨。`,
+  baiweiran:
+`巫弦乐将骨笛递到你面前，笑得凉薄：「白未染，当年你刺我那一剑，我记了三年。今日，我就要看看，你的『浩然正气』，还能不能对旧情下得去手。」
+你握剑的手，止不住地颤抖。正邪、师门、愧疚与爱意，如潮水般将你淹没。`,
+  custom:
+`当真相如潮水涌来，你终于想起了一切——
+你是十年前那场大火中，被拼死救出的「那个人」。有人抹去了你的记忆，将你藏入市井，只盼你平凡安稳地度过一生。
+可命运，终究还是把你带回了凌云台。`,
+};
+
+/* ---------- 剧情节点（上） ---------- */
+const STORY = {
+  start: 'pro_start',
+  nodes: {
+
+  /* ============ 序章 ============ */
+  pro_start: {
+    chapter: '序章 · 凌云帖至', type: 'narrative', text: '', next: 'pro_choice1',
+  },
+
+  pro_choice1: {
+    chapter: '序章 · 凌云帖至', type: 'choice',
+    text: '望着那纸烫金的凌云帖，你心头翻涌。赴约之前，你决定——',
+    choices: [
+      { text:'欣然赴约，堂堂正正探个究竟', hint:'情义 +1 · 信任 +1', flags:{ 情义:1, 信任:1 }, next:'pro_meet' },
+      { text:'暗中查访，不露半分声色', hint:'权谋 +1 · 怀疑 +1', flags:{ 权谋:1, 怀疑:1 }, next:'pro_meet' },
+      { text:'既来之则安之，先饮一杯再作计较', hint:'情义 +1 · 宽恕 +1', flags:{ 情义:1, 宽恕:1 }, next:'pro_meet' },
+    ],
+  },
+
+  pro_meet: {
+    chapter: '序章 · 凌云台下', type: 'narrative',
+    text:`凌云台下，已是人声鼎沸。你抬眼望去，正见几位气质迥异的男女分据各处。
+传闻中的六位主角，竟真的都到了——朝堂的公主、执剑的侠客、清冷的医女、正道的剑客，还有那位喜怒无常的摄政王。
+一场跨越十年的生死局，即将在此拉开帷幕。`,
+    next: 'pro_meet_choice',
+  },
+
+  pro_meet_choice: {
+    chapter: '序章 · 凌云台下', type: 'choice',
+    text: '入席之前，你想先——',
+    choices: [
+      { text:'与众人攀谈结交，探探口风', hint:'情义 +1', flags:{ 情义:1 }, next:'pro_road' },
+      { text:'退到暗处，冷眼观察每个人的神情', hint:'线索 +1 · 怀疑 +1', flags:{ 线索:1, 怀疑:1 }, next:'pro_road' },
+      { text:'径直朝摄政王走去，与他周旋', hint:'权谋 +1', flags:{ 权谋:1 }, next:'pro_road' },
+    ],
+  },
+
+  pro_road: {
+    chapter: '序章 · 官道杀机', type: 'combat',
+    text: '行至凌云台山道，忽听林间一声唿哨，一群山贼提刀跃出，拦住了去路！',
+    combat: { scene:'凌云台下 · 山道', enemies:['shanzei','shanzei','shanzei'], win:'pro_gate', lose:'pro_recover', fleeable:false },
+  },
+
+  pro_recover: {
+    chapter: '序章 · 官道杀机', type: 'narrative',
+    text: '你虽败下阵来，却在千钧一发之际被路过之人所救。你强撑起身，暗自发誓：此仇，来日必报。',
+    effects: { hpRestore:0.5 }, next: 'pro_gate',
+  },
+
+  pro_gate: {
+    chapter: '序章 · 登台入宴', type: 'narrative',
+    text:`凌云台上，灯火通明，丝竹声声。
+正中高悬一匾，上书四个大字——「凌云一醉」。相传台顶藏着一坛百年佳酿，饮下者，可知天下至真。
+可这觥筹交错之下，暗流涌动。每个人的笑，都像藏着刀。`,
+    next: 'pro_gate_choice',
+  },
+
+  pro_gate_choice: {
+    chapter: '序章 · 登台入宴', type: 'choice',
+    text: '席间，摄政王方逆举杯而起，笑问众人：「各位以为，这『醉凌云』，饮下的是酒，还是别的什么？」你答——',
+    choices: [
+      { text:'「饮下的是执念，求一个真相。」', hint:'执念 +1 · 线索 +1', flags:{ 执念:1, 线索:1 }, next:'ch1_start' },
+      { text:'「是酒，也是命。酒入愁肠，命由天定。」', hint:'宽恕 +1', flags:{ 宽恕:1 }, next:'ch1_start' },
+      { text:'「是权。这一杯，谁能饮，谁便是赢家。」', hint:'权谋 +1', flags:{ 权谋:1 }, next:'ch1_start' },
+    ],
+  },
+
+  /* ============ 第一章 ============ */
+  ch1_start: {
+    chapter: '第一章 · 朝堂暗涌', type: 'narrative',
+    text:`酒过三巡，宴席渐入高潮，却也暗藏锋芒。
+有人借故离席，有人目光闪烁。你注意到，那位小公主苏温言笑得天真，眼底却冷得惊人；而摄政王方逆，始终似笑非笑地观察着每一个人。`,
+    next: 'ch1_start_choice',
+  },
+
+  ch1_start_choice: {
+    chapter: '第一章 · 朝堂暗涌', type: 'choice',
+    text: '席间，一名内侍不慎打翻酒盏，洒了你一身。众人目光齐聚，你——',
+    choices: [
+      { text:'淡然一笑，替他解围', hint:'情义 +1 · 宽恕 +1', flags:{ 情义:1, 宽恕:1 }, next:'ch1_banquet' },
+      { text:'冷声斥责，借机立威', hint:'权谋 +1 · 执念 +1 · 朝堂声望 +1', flags:{ 权谋:1, 执念:1 }, reputation:{ 朝堂:1 }, next:'ch1_banquet' },
+      { text:'不动声色，暗中留意内侍的异常', hint:'线索 +1 · 怀疑 +1', flags:{ 线索:1, 怀疑:1 }, next:'ch1_banquet' },
+    ],
+  },
+
+  ch1_banquet: {
+    chapter: '第一章 · 朝堂暗涌', type: 'narrative',
+    text: '觥筹之间，你忽然觉得口中酒味有异。凌云台上，似乎并不止是酒香——还有杀意。',
+    next: 'ch1_banquet_choice',
+  },
+
+  ch1_banquet_choice: {
+    chapter: '第一章 · 朝堂暗涌', type: 'choice',
+    text: '入夜，宾客各自散去。你决定——',
+    choices: [
+      { text:'夜探凌云台，查那杯酒的蹊跷', hint:'线索 +1', flags:{ 线索:1 }, next:'ch1_night' },
+      { text:'与一位故人（或对手）私下深谈', hint:'情义 +1', flags:{ 情义:1 }, next:'ch1_night' },
+      { text:'按兵不动，静观其变', hint:'权谋 +1', flags:{ 权谋:1 }, next:'ch1_night' },
+    ],
+  },
+
+  ch1_night: {
+    chapter: '第一章 · 夜探凌云台', type: 'narrative',
+    text: '更深露重，你借着夜色潜行。凌云台层层叠叠，机关与阴影并存。远处，隐约传来巡逻侍卫的脚步声。',
+    next: 'ch1_night_choice',
+  },
+
+  ch1_night_choice: {
+    chapter: '第一章 · 夜探凌云台', type: 'choice',
+    text: '该往何处查探？',
+    choices: [
+      { text:'藏经阁——旧案卷宗最可能藏在那里', hint:'线索 +2', flags:{ 线索:2 }, next:'ch1_clue' },
+      { text:'偏殿——你隐约听见有人在低语', hint:'情义 +1 · 线索 +1', flags:{ 情义:1, 线索:1 }, next:'ch1_clue2' },
+      { text:'酒窖——那杯怪酒，必与「醉凌云」有关', hint:'线索 +1 · 怀疑 +1', flags:{ 线索:1, 怀疑:1 }, next:'ch1_clue3' },
+    ],
+  },
+
+  ch1_clue: {
+    chapter: '第一章 · 藏经阁', type: 'narrative',
+    text:`藏经阁内灰尘扑面。你翻到一卷被刻意抹去的残卷，勉强辨出几个字——
+「……十年……宫变……大火……（涂改）……非天灾……」
+有人先你一步来过，却抹不尽全部痕迹。你心中巨震：原来十年前，竟是这般。`,
+    next: 'ch1_guard',
+  },
+
+  ch1_clue2: {
+    chapter: '第一章 · 偏殿', type: 'narrative',
+    text:`偏殿内，你听见一男一女低声争执，言辞间提到「醉凌云」「玉玺」「不可再拖」。
+你屏息凝神，却听一人厉声道：「既已至此，谁挡谁死！」话音未落，脚步声朝你这边而来。`,
+    next: 'ch1_guard',
+  },
+
+  ch1_clue3: {
+    chapter: '第一章 · 酒窖', type: 'narrative',
+    text:`酒窖深处，你发现那坛所谓的「醉凌云」旁，散落着几粒未化尽的粉末。
+你拈起一闻，瞳孔骤缩——是「蚀心散」，一种慢性毒药，正是十年前的宫廷秘药。
+有人在凌云台上，布下了当年的毒局。`,
+    next: 'ch1_guard',
+  },
+
+  ch1_guard: {
+    chapter: '第一章 · 夜探惊变', type: 'combat',
+    text: '「什么人！」巡逻侍卫发现异动，长刀出鞘，朝你围来！',
+    combat: { scene:'凌云台 · 夜色', enemies:['shiwei','shiwei'], win:'ch1_after', lose:'ch1_caught', fleeable:true, dropItem:{ huiqi:1 } },
+  },
+
+  ch1_caught: {
+    chapter: '第一章 · 夜探惊变', type: 'narrative',
+    text: '你不敌侍卫，被擒下关押。幸而有人暗中周旋，将你放了出来。经此一役，你更确信：凌云台上，必有更大的阴谋。',
+    effects: { hpRestore:0.4 }, next: 'ch1_after',
+  },
+
+  ch1_after: {
+    chapter: '第一章 · 暗流初现', type: 'narrative',
+    text: '天将破晓。你回到住处，将这一夜的发现细细梳理，只觉一张无形大网，正缓缓收紧。',
+    next: 'ch1_end',
+  },
+
+  ch1_end: {
+    chapter: '第一章 · 尾声', type: 'narrative',
+    text:`而此刻，凌云台最高处，一道黑影负手而立，俯瞰众生，嘴角勾起一抹冷笑：「都到齐了。好戏，该开演了。」
+（自此，边城已对你在江湖中开放，可从右上角「菜单」进入地图探索、补给。）`,
+    effects: { unlockRegion:'biancheng', xp:30 }, next: 'ch2_start',
+  },
+
+  /* ============ 第二章 ============ */
+  ch2_start: {
+    chapter: '第二章 · 江湖风波', type: 'narrative',
+    text:`第二日，凌云宴重开。
+席间突然火光冲天——一群黑衣教徒破门而入，口念咒语，杀意凛然。有人失声惊呼：「魔教！」`,
+    next: 'ch2_choice1',
+  },
+
+  ch2_choice1: {
+    chapter: '第二章 · 魔教来袭', type: 'choice',
+    text: '魔教教徒见人就砍，局势瞬间大乱。你——',
+    choices: [
+      { text:'拔剑而起，护住身边无辜之人', hint:'正道 +1 · 情义 +1 · 江湖声望 +1', flags:{ 正道:1, 情义:1 }, reputation:{ 江湖:1 }, next:'ch2_ambush' },
+      { text:'先退到高处，看清敌人虚实再动手', hint:'权谋 +1 · 线索 +1', flags:{ 权谋:1, 线索:1 }, next:'ch2_ambush' },
+      { text:'趁乱直取魔教首领', hint:'执念 +1 · 复仇 +1', flags:{ 执念:1, 复仇:1 }, next:'ch2_ambush' },
+    ],
+  },
+
+  ch2_ambush: {
+    chapter: '第二章 · 魔教来袭', type: 'combat',
+    text: '两个魔教教徒狞笑着朝你扑来，掌心黑气翻涌！',
+    combat: { scene:'凌云台 · 火光', enemies:['mojiao','mojiao'], win:'ch2_after', lose:'ch2_saved', fleeable:false, dropItem:{ jinchuang:1 } },
+  },
+
+  ch2_saved: {
+    chapter: '第二章 · 魔教来袭', type: 'narrative',
+    text: '你力有不逮，眼看就要受伤，一道寒光闪过，有人替你挡下致命一击。你抬头，正对上一双熟悉的眼睛。',
+    effects: { hpRestore:0.5 }, next: 'ch2_after',
+  },
+
+  ch2_after: {
+    chapter: '第二章 · 故人重逢', type: 'narrative',
+    text:`火光与厮杀之间，你瞥见了那道身影——魔教圣女巫弦乐，立于高台之上，笑得邪魅。
+而正道高徒白未染，握剑的手微微发颤。江湖与朝堂的恩怨，在这一刻，被彻底点燃。`,
+    next: 'ch2_choice2',
+  },
+
+  ch2_choice2: {
+    chapter: '第二章 · 正邪对峙', type: 'choice',
+    text: '巫弦乐轻笑：「今日，我要这凌云台，血流成河。」你——',
+    choices: [
+      { text:'上前一步，剑指魔教，与正道并肩', hint:'正道 +1 · 门派声望 +1', flags:{ 正道:1 }, reputation:{ 门派:1 }, next:'ch2_climax' },
+      { text:'喝问她的真正目的，套取情报', hint:'线索 +1 · 怀疑 +1', flags:{ 线索:1, 怀疑:1 }, next:'ch2_climax' },
+      { text:'冷眼旁观，等他们两败俱伤', hint:'权谋 +1 · 执念 +1', flags:{ 权谋:1, 执念:1 }, next:'ch2_climax' },
+    ],
+  },
+
+  ch2_climax: {
+    chapter: '第二章 · 决战护法', type: 'combat',
+    text: '魔教护法血袍翻飞，一掌拍来，阴风扑面！',
+    combat: { scene:'凌云台 · 血战', enemies:['mojiao_hu'], win:'ch2_romance', lose:'ch2_retreat', fleeable:false, dropSkill:true },
+  },
+
+  ch2_retreat: {
+    chapter: '第二章 · 决战护法', type: 'narrative',
+    text: '魔教护法功法诡异，你暂落下风。幸得众人合力，才将其逼退。你喘着粗气，望向高台——真正的敌人，尚未露面。',
+    effects: { hpRestore:0.4 }, next: 'ch2_romance',
+  },
+
+  ch2_romance: {
+    chapter: '第二章 · 情之一字', type: 'narrative',
+    romance: true, // 运行时填充 ROMANCE[角色]
+    next: 'ch2_end',
+  },
+
+  ch2_end: {
+    chapter: '第二章 · 尾声', type: 'narrative',
+    text:`魔教退去，凌云台上一片狼藉。
+你望着满地狼藉与伤者，终于明白：这场「凌云宴」，从头到尾，都是别人的棋局。
+而你的名字，早已被写进了棋盘。
+（冷家旧宅、药王谷现已开放，可自由探索。）`,
+    effects: { unlockRegion:'lingjia', unlockRegion2:'yaowanggu', xp:30 }, next: 'ch3_start',
+  },
+
+  } /* nodes end */
+}; /* STORY end */
+
+/* ============================================================
+   《醉凌云 · 江湖冒险》v2.0 —— 剧情数据（下）
+   第三/四章 · 终极武学 · 多结局
+   ============================================================ */
+
+Object.assign(STORY.nodes, {
+
+  /* ============ 第三章 ============ */
+  ch3_start: {
+    chapter: '第三章 · 旧案重提', type: 'narrative',
+    text:`魔教之乱后，凌云台被封锁。你趁乱探查，竟在断壁残垣中，找到了一条通往台底密室的暗道。
+石阶幽深，直通十年前那桩被掩埋的旧案。`,
+    next: 'ch3_choice1',
+  },
+
+  ch3_choice1: {
+    chapter: '第三章 · 旧案重提', type: 'choice',
+    text: '密道尽头，一扇锈蚀的铁门拦在眼前。门后，似有微弱的呼吸声。你——',
+    choices: [
+      { text:'毫不犹豫，破门而入', hint:'执念 +1 · 情义 +1', flags:{ 执念:1, 情义:1 }, next:'ch3_personal' },
+      { text:'先伏地听声，确认有无机关', hint:'线索 +1 · 权谋 +1', flags:{ 线索:1, 权谋:1 }, next:'ch3_personal' },
+      { text:'轻声询问门后之人', hint:'信任 +1 · 情义 +1', flags:{ 信任:1, 情义:1 }, next:'ch3_personal' },
+    ],
+  },
+
+  ch3_personal: {
+    chapter: '第三章 · 旧案重提', type: 'narrative',
+    exclusive: true, // 运行时填充 EXCLUSIVE[角色]
+    next: 'ch3_truth',
+  },
+
+  ch3_truth: {
+    chapter: '第三章 · 真相如潮', type: 'narrative',
+    text:`尘封十年的真相，终于浮出水面——
+当年宫变，先帝欲废幼帝、改立太子，宠妃勾结魔教发动政变，火烧凌云台。先帝与先皇后遇害，太子失踪，传国玉玺与「醉凌云」古方，一并下落不明。
+而摄政王方逆，正是当年目睹一切、却无力回天的幸存者。他忍辱十年，就是为了今日，向所有仇人讨债。`,
+    next: 'ch3_choice2',
+  },
+
+  ch3_choice2: {
+    chapter: '第三章 · 爱恨抉择', type: 'choice',
+    text: '得知真相后，你心中翻江倒海。你决定——',
+    choices: [
+      { text:'誓要血债血偿，一个也不放过', hint:'复仇 +2 · 执念 +1', flags:{ 复仇:2, 执念:1 }, next:'ch3_battle' },
+      { text:'凶手已老，冤冤相报何时了', hint:'宽恕 +2 · 情义 +1 · 江湖声望 +1', flags:{ 宽恕:2, 情义:1 }, reputation:{ 江湖:1 }, next:'ch3_battle' },
+      { text:'不急着复仇，先揪出幕后真正的主使', hint:'线索 +2 · 正道 +1', flags:{ 线索:2, 正道:1 }, next:'ch3_battle' },
+    ],
+  },
+
+  ch3_battle: {
+    chapter: '第三章 · 密室杀机', type: 'combat',
+    text: '暗处破空声起！数名黑衣死士自阴影中扑出，刀刀致命！',
+    combat: { scene:'凌云台 · 地下密室', enemies:['sishi','sishi','sishi'], win:'ch3_end', lose:'ch3_saved', fleeable:false, dropItem:{ yulu:1 }, dropSkill:true },
+  },
+
+  ch3_saved: {
+    chapter: '第三章 · 密室杀机', type: 'narrative',
+    text: '你渐渐不支，却见密道外冲入一人，与你并肩死战，终将死士击退。',
+    effects: { hpRestore:0.5 }, next: 'ch3_end',
+  },
+
+  ch3_end: {
+    chapter: '第三章 · 尾声', type: 'narrative',
+    text:`你带着满身血污与满心答案，走出密道。
+天光刺目。你知道，真正的决战，还在凌云台的最高处等着你。
+（北阙皇城、魔教总坛现已开放，可自由探索。）`,
+    effects: { unlockRegion:'huangcheng', unlockRegion2:'mojiao', xp:40 }, next: 'ch4_start',
+  },
+
+  /* ============ 第四章 ============ */
+  ch4_start: {
+    chapter: '第四章 · 凌云台真相', type: 'narrative',
+    text:`凌云台顶，云雾翻涌。
+一道身影早已候在此处——正是这场十年生死局的幕后者，凌云阁主。
+「你来了。」他负手而立，声音平淡，「我等这一天，也等了十年。」`,
+    next: 'ch4_choice1',
+  },
+
+  ch4_choice1: {
+    chapter: '第四章 · 凌云台真相', type: 'choice',
+    text: '面对幕后之人，你——',
+    choices: [
+      { text:'喝问：「你究竟是谁？为何设下此局？」', hint:'线索 +1 · 信任 +1', flags:{ 线索:1, 信任:1 }, next:'ch4_reveal' },
+      { text:'冷笑：「十年布局，你也不过是别人的棋子。」', hint:'权谋 +1 · 怀疑 +1', flags:{ 权谋:1, 怀疑:1 }, next:'ch4_reveal' },
+      { text:'缓缓拔出兵刃：「废话少说，手底下见真章。」', hint:'执念 +1 · 复仇 +1', flags:{ 执念:1, 复仇:1 }, next:'ch4_reveal' },
+    ],
+  },
+
+  ch4_reveal: {
+    chapter: '第四章 · 凌云台真相', type: 'narrative',
+    text:`凌云阁主缓缓道出一切：他本是先帝近臣，因宫变被抄家灭族，侥幸逃生。十年间，他布局天下，只为夺回「醉凌云」与玉玺，也为自己正名。
+「这天下，本就有能者居之。」他眼中尽是偏执，「挡我者，死。」`,
+    next: 'ch4_sword',
+  },
+
+  ch4_sword: {
+    chapter: '第四章 · 悟道突破', type: 'narrative',
+    ultimate: true, // 运行时授予终极武学 + 填充文本
+    next: 'ch4_choice2',
+  },
+
+  ch4_choice2: {
+    chapter: '第四章 · 最终抉择', type: 'choice',
+    text: '最后一战，一触即发。你此刻心中所想——',
+    choices: [
+      { text:'为苍生、为公道，斩尽邪佞', hint:'正道 +2 · 情义 +1 · 朝堂声望 +1', flags:{ 正道:2, 情义:1 }, reputation:{ 朝堂:1 }, next:'ch4_boss_great' },
+      { text:'这天下，本就该由我掌控', hint:'权谋 +2 · 执念 +1', flags:{ 权谋:2, 执念:1 }, next:'ch4_boss_evil' },
+      { text:'带我所在意的人，远走高飞', hint:'情义 +2 · 宽恕 +1 · 江湖声望 +1', flags:{ 情义:2, 宽恕:1 }, reputation:{ 江湖:1 }, next:'ch4_boss_escape' },
+    ],
+  },
+
+  ch4_boss_great: {
+    chapter: '第四章 · 最终决战', type: 'combat',
+    text: '你踏前一步，兵刃指苍穹：「凌云阁主，你的棋局，到此为止！」',
+    combat: { scene:'凌云台顶 · 生死一战', enemies:['lingyunzhu'], win:'ch4_after', lose:'ch4_defeat', fleeable:false },
+  },
+
+  ch4_boss_evil: {
+    chapter: '第四章 · 最终决战', type: 'combat',
+    text: '你眼中闪过一丝冷厉：「这天下，也该换个主人了。」龙椅之上，那被权欲浸透的帝王拔剑而起。',
+    combat: { scene:'凌云台顶 · 夺位之战', enemies:['huangdi'], win:'ch4_after', lose:'ch4_defeat', fleeable:false },
+  },
+
+  ch4_boss_escape: {
+    chapter: '第四章 · 最终决战', type: 'combat',
+    text: '你拉起所爱（所护）之人的手，正要离去，一道玄衣身影拦住去路——魔教圣女巫弦乐，骨笛轻旋。',
+    combat: { scene:'凌云台顶 · 情劫之战', enemies:['wuxianyue'], win:'ch4_after', lose:'ch4_defeat', fleeable:false },
+  },
+
+  ch4_defeat: {
+    chapter: '第四章 · 最终决战', type: 'narrative',
+    text: '你终究还是败了。可就在生死一线，那些与你并肩走过的人，纷纷挡在了你身前。你挣扎着重新站起。',
+    effects: { hpRestore:0.6 }, next: 'ch4_after',
+  },
+
+  ch4_after: {
+    chapter: '终章 · 结局', type: 'narrative',
+    text:`尘埃落定。
+你站在凌云台顶，看云海翻涌，往事如潮。
+那坛传说中的「醉凌云」，正静静立于台心。`,
+    next: '__ending__',
+  },
+
+});
+
+/* ---------- 终极武学（第四章授予） ---------- */
+const ULTIMATE = {
+  mugui:'xuanhu', lengji:'zuiyun_quan', suqianyu:'fengwu', suwenyan:'mianli',
+  fangni:'jianxin', baiweiran:'tiangang',
+  剑道:'lingyunjian', 拳掌:'bengtian', 岐黄:'xuanhu', 音律:'fengqiuhuang',
+};
+
+const ULTIMATE_TEXT = {
+  lengji:
+`你于血战与旧案之中，忽有所悟。
+祖传剑法最后一重的关窍，如云开月明般浮现心头——那柄未成形的「醉凌云」，在此刻，终于圆满。
+
+【习得 醉凌云剑法·全】天下至臻剑法，凌云之上一场大醉。`,
+  default:
+`生死一线，你福至心灵，将毕生所学融会贯通，境界更上一层楼。`,
+};
+
+/* ---------- 结局定义 ---------- */
+const ENDINGS = {
+  perfect: {
+    title: '凌云共醉', tag: '圆满 · 真相大白，天下太平',
+    text:`你与众人联手，揭破了十年旧案，也放过了该放过的人。
+罪魁伏诛，无辜得赦，朝堂与江湖，终归平静。
+你们于凌云台顶，分饮那一坛「醉凌云」。酒入愁肠，化作释然一笑。
+「人生所求，不过凌云之上一场大醉。」
+——这一场醉，值得。`,
+  },
+  sad: {
+    title: '醉里孤鸿', tag: '悲情 · 大仇得报，所爱成空',
+    text:`大仇终报，血债血偿。可当你回望时，才发现有些东西，再也回不去了。
+那些人、那些情，都随着这场恩怨，化作云烟。
+你独自饮下「醉凌云」，酒很烈，烈得人眼眶发红。
+「原来复仇之后，剩下的，只有一场空。」`,
+  },
+  rule: {
+    title: '帝王之心', tag: '权谋 · 九五之尊，高处不胜寒',
+    text:`你踩着层层血与骨，坐上了那个位置。
+从此天下皆在你掌中，无人再敢忤逆。
+只是偶尔夜深人静，你会想起凌云台上，那一场未竟的醉。
+「赢了天下，输了人间。」
+龙椅冰冷，而你的心，早已不跳了。`,
+  },
+  free: {
+    title: '江湖一醉', tag: '逍遥 · 放下恩怨，相忘江湖',
+    text:`你放下了剑，也放下了恩怨。
+带着所爱（所护）之人，你转身没入苍茫江湖，从此不问朝堂、不问是非。
+多年后，江湖上流传着你的传说，而你只笑着，在某个酒肆里，饮下一碗浊酒。
+「醉凌云？早忘啦。江湖这一醉，比什么都真。」`,
+  },
+  dark: {
+    title: '执念成魔', tag: '黑化 · 一念成执，万劫不复',
+    text:`执念太深，终究入了魔。
+你杀红了眼，分不清敌我，也分不清爱恨。
+当最后一剑落下，你才发现，眼前之人，是你此生最不该伤的人。
+可一切，都晚了。
+你抱着那坛「醉凌云」，疯癫大笑，笑声在凌云台上空，久久不散。`,
+  },
+  true_dragon: {
+    title: '真龙归位', tag: '隐藏 · 身世之谜，一朝大白',
+    text:`当最后一块记忆碎片归位，你终于想起——
+你是十年前那场大火中，被拼死救出的「他/她」，是这北阙王朝，真正失落的血脉。
+你缓缓走上凌云台，群臣俯首，万民山呼。
+「原来，这天下，一直等着我回来。」
+你饮下「醉凌云」，不再是醉，而是醒。`,
+  },
+};
+
+/* ============================================================
+   《醉凌云 · 江湖冒险》 —— 水墨写意半身立绘（SVG）
+   覆盖：六位主人公 / 自建角色 / 敌人与 NPC
+   内置立绘；也可被 portraits/<id>.png 外部图片覆盖
+   ============================================================ */
+
+const PORTRAIT_META = {
+  // —— 主人公 ——
+  mugui:     { name:'慕归', accent:'#4c6e55', deep:'#1a251d', tint:'#6fae8f', title:'清冷医女', motif:'gourd' },
+  lengji:    { name:'冷寂', accent:'#4a6278', deep:'#182230', tint:'#7fa8c8', title:'热血侠客', motif:'sword' },
+  suqianyu:  { name:'浅语', accent:'#7c4a48', deep:'#271717', tint:'#d89880', title:'北阙长公主', motif:'crown' },
+  suwenyan:  { name:'温言', accent:'#6b5578', deep:'#20182c', tint:'#c09ad0', title:'北阙小公主', motif:'flower' },
+  fangni:    { name:'方逆', accent:'#6b5a3a', deep:'#23200f', tint:'#d8b06a', title:'摄政王', motif:'scepter' },
+  baiweiran: { name:'未染', accent:'#4a5a66', deep:'#161d23', tint:'#9fc8d8', title:'正道高徒', motif:'lotus' },
+  custom:    { name:'无名', accent:'#5c5c5c', deep:'#171717', tint:'#c8c8c8', title:'无名之辈', motif:'gourd' },
+  // —— 敌人 / NPC ——
+  wuxianyue:  { name:'巫弦乐', accent:'#4a3a5e', deep:'#1a1424', tint:'#b09ad0', title:'魔教圣女', motif:'flute' },
+  lengren:    { name:'冷刃', accent:'#3a4a5e', deep:'#141c26', tint:'#8fb0cc', title:'无主之刃', motif:'sword' },
+  lingyunzhu: { name:'凌云阁主', accent:'#4a4a52', deep:'#18181c', tint:'#d8b06a', title:'幕后之人', motif:'cloud' },
+  huangdi:    { name:'北阙新帝', accent:'#6b5a2a', deep:'#241f0e', tint:'#e8c86a', title:'九五之尊', motif:'crown' },
+  shanzei:    { name:'山贼', accent:'#5a4a3a', deep:'#1e1612', tint:'#c89a6a', title:'拦路剪径', motif:'axe' },
+  shanzei_tou:{ name:'山贼头目', accent:'#5a4030', deep:'#1e1410', tint:'#d08a5a', title:'聚啸山林', motif:'axe' },
+  shiwei:     { name:'朝堂侍卫', accent:'#4a5a5a', deep:'#161c1c', tint:'#9fc8c8', title:'奉旨捉拿', motif:'shield' },
+  mojiao:     { name:'魔教教徒', accent:'#5e3a3a', deep:'#241414', tint:'#e08a6a', title:'邪焰肆虐', motif:'fire' },
+  mojiao_hu:  { name:'魔教护法', accent:'#4e2a34', deep:'#1c0e14', tint:'#d86a8a', title:'血祭苍生', motif:'skull' },
+  sishi:      { name:'死士', accent:'#3a3a3a', deep:'#121212', tint:'#b0b0b0', title:'视死如归', motif:'mask' },
+  yingwei:    { name:'影卫', accent:'#2e3a4a', deep:'#0e141c', tint:'#7a9ac8', title:'如影随形', motif:'moon' },
+};
+
+let _puid = 0;
+function inkPortraitSVG(key){
+  const m = PORTRAIT_META[key] || PORTRAIT_META.custom;
+  const u = 'p' + (++_puid);
+  const bg = `bg-${u}`, moon = `moon-${u}`;
+  const two = (m.name || '无名').slice(0, 2);
+  const c1 = two[0] || '', c2 = two[1] || '';
+
+  return `<svg class="portrait-svg" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${m.name}">
+  <defs>
+    <linearGradient id="${bg}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${m.accent}"/>
+      <stop offset="1" stop-color="${m.deep}"/>
+    </linearGradient>
+    <radialGradient id="${moon}" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#f5ead0" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#f5ead0" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur-${u}"><feGaussianBlur stdDeviation="7"/></filter>
+  </defs>
+
+  <rect width="300" height="400" fill="url(#${bg})"/>
+  <path d="M0 320 L52 232 L104 302 L160 208 L222 296 L268 238 L300 282 L300 400 L0 400 Z" fill="#0e0c0a" opacity=".38"/>
+  <path d="M0 360 L70 296 L140 356 L210 300 L300 368 L300 400 L0 400 Z" fill="#0b0a08" opacity=".55"/>
+  <circle cx="222" cy="86" r="52" fill="url(#${moon})" filter="url(#blur-${u})"/>
+  <ellipse cx="150" cy="348" rx="150" ry="22" fill="#fff" opacity=".05" filter="url(#blur-${u})"/>
+
+  <g fill="#14110e">
+    <ellipse cx="150" cy="104" rx="16" ry="12"/>
+    <path d="M150 96 L150 74 L158 82 L142 82 Z"/>
+    <path d="M118 148 Q118 106 150 102 Q182 106 182 148 Q182 136 176 128 Q150 116 124 128 Q118 136 118 148 Z"/>
+    <ellipse cx="150" cy="150" rx="30" ry="32" fill="#e9dfcd"/>
+    <rect x="140" y="176" width="20" height="16"/>
+    <path d="M150 192 Q108 196 92 232 L96 340 Q150 356 204 340 L208 232 Q192 196 150 192 Z"/>
+    <path d="M150 192 L136 240 L150 246 L164 240 Z" fill="#0d0b09"/>
+    <path d="M150 192 L128 236 L150 250 Z" fill="#0a0908"/>
+    <rect x="102" y="258" width="96" height="10" rx="3" fill="#5a2a1e"/>
+    <rect x="146" y="256" width="8" height="14" fill="${m.tint}"/>
+    <path d="M108 208 Q72 224 62 268 L84 286 Q96 244 108 236 Z"/>
+    <path d="M192 208 Q228 224 238 268 L216 286 Q204 244 192 236 Z"/>
+  </g>
+
+  <g transform="translate(38,48)" fill="none" stroke="${m.tint}" stroke-width="2.4" stroke-linecap="round" opacity=".9">
+    ${motifPath(m.motif)}
+  </g>
+
+  <text x="266" y="150" font-size="40" fill="#0e0c0a" font-family="KaiTi,STKaiti,serif" text-anchor="middle" opacity=".85">${c1}</text>
+  <text x="266" y="200" font-size="40" fill="#0e0c0a" font-family="KaiTi,STKaiti,serif" text-anchor="middle" opacity=".85">${c2}</text>
+
+  <g transform="translate(214,312)">
+    <rect width="58" height="58" rx="4" fill="#a3302a"/>
+    <text x="29" y="26" font-size="18" fill="#f5ead0" text-anchor="middle" font-family="KaiTi,STKaiti,serif">${c1}</text>
+    <text x="29" y="48" font-size="18" fill="#f5ead0" text-anchor="middle" font-family="KaiTi,STKaiti,serif">${c2}</text>
+  </g>
+</svg>`;
+}
+
+/* 标识图形 */
+function motifPath(motif){
+  switch(motif){
+    case 'sword':   return '<path d="M8 40 L8 8 M2 26 L14 26" /><path d="M2 8 L14 8"/>';
+    case 'gourd':   return '<path d="M8 20 q-6 4 0 12 q6 -4 0 -12"/><path d="M6 8 a2 2 0 1 1 4 0 a2 2 0 0 1 -4 0"/><path d="M8 8 L8 20"/>';
+    case 'crown':   return '<path d="M2 34 L2 18 L10 28 L16 12 L22 28 L30 18 L30 34 Z"/>';
+    case 'flower':  return '<circle cx="16" cy="16" r="6"/><circle cx="24" cy="12" r="5"/><circle cx="24" cy="22" r="5"/><circle cx="8" cy="12" r="5"/><circle cx="8" cy="22" r="5"/><circle cx="16" cy="26" r="4"/>';
+    case 'scepter': return '<path d="M8 40 L8 10 M4 10 L12 10"/><circle cx="8" cy="8" r="4"/>';
+    case 'lotus':   return '<path d="M16 6 q6 10 0 18 q-6 -8 0 -18"/><path d="M8 16 q8 6 16 0"/><path d="M4 20 q8 8 16 2"/>';
+    case 'flute':   return '<path d="M4 32 L28 12"/><circle cx="11" cy="24" r="1.6"/><circle cx="16" cy="19" r="1.6"/><circle cx="21" cy="14" r="1.6"/>';
+    case 'cloud':   return '<path d="M6 28 q3 -10 10 -8 q3 -10 12 -7 q4 -6 10 -2 q5 0 6 5 q6 1 4 7 q3 3 -1 8 H6 q-6 -1 -6 -6 Z"/>';
+    case 'axe':     return '<path d="M8 6 L20 20 L16 27 L6 13 Z"/><path d="M16 27 L16 40"/>';
+    case 'shield':  return '<path d="M8 8 L24 8 L24 24 Q16 32 8 24 Z"/>';
+    case 'fire':    return '<path d="M16 6 q7 6 0 15 q-3 5 -8 3 q-4 -6 0 -10 q-2 4 1 6 q-2 2 -4 0 q0 -6 5 -10 q-2 -2 -1 -4 q3 -2 7 0 Z"/>';
+    case 'skull':   return '<circle cx="16" cy="20" r="10"/><circle cx="12" cy="18" r="2.4"/><circle cx="20" cy="18" r="2.4"/><path d="M12 26 h8"/>';
+    case 'mask':    return '<path d="M8 10 Q16 5 24 10 Q24 22 16 27 Q8 22 8 10 Z"/><circle cx="12" cy="15" r="1.8"/><circle cx="20" cy="15" r="1.8"/>';
+    case 'moon':    return '<path d="M21 5 A11 11 0 1 0 27 25 A13 13 0 1 1 21 5 Z"/>';
+    default:        return '<circle cx="16" cy="18" r="10"/>';
+  }
+}
+
+/* ============================================================
+   《醉凌云 · 江湖冒险》 —— 音效引擎（Web Audio 合成，无需音频文件）
+   背景音乐（宫商角徵羽·拨弦）+ 打斗/技能/升级等音效
+   ============================================================ */
+const AudioSys = (() => {
+  let ctx = null, master = null, musicGain = null, sfxGain = null, noiseBuf = null;
+  let enabled = true;
+  let musicOn = false;
+  let step = 0, nextTime = 0, timer = null;
+
+  // 五声音阶（D 宫）
+  const SCALE = [146.83, 164.81, 185.00, 220.00, 246.94, 293.66, 329.63, 369.99, 440.00];
+  const MELODY = [0,2,4,3,2,0,2,3, 5,4,3,2,1,0,2,0];
+  const STEP = 0.42;
+
+  function ensure(){
+    if(!ctx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return false;
+      try{
+        ctx = new AC();
+        master = ctx.createGain(); master.gain.value = enabled ? 0.6 : 0; master.connect(ctx.destination);
+        musicGain = ctx.createGain(); musicGain.gain.value = 0.38; musicGain.connect(master);
+        sfxGain = ctx.createGain(); sfxGain.gain.value = 0.7; sfxGain.connect(master);
+        noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+        const d = noiseBuf.getChannelData(0);
+        for(let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
+      }catch(e){ ctx = null; return false; }
+    }
+    if(ctx && ctx.state === 'suspended') ctx.resume();
+    return true;
+  }
+  function unlock(){ if(enabled) ensure(); }
+  function setEnabled(v){
+    enabled = v;
+    if(ctx && master){ try{ master.gain.setTargetAtTime(v ? 0.6 : 0, ctx.currentTime, 0.05); }catch(e){} }
+    if(!v) stopMusic();
+  }
+
+  function tone(freq, dur, vol, type, when, dest){
+    if(!ctx || !enabled) return;
+    const t = (when != null ? when : ctx.currentTime);
+    const osc = ctx.createOscillator(); osc.type = type || 'sine'; osc.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g); g.connect(dest || sfxGain);
+    osc.start(t); osc.stop(t + dur + 0.05);
+  }
+  function pluck(freq, when){
+    if(!ctx || !enabled) return;
+    const t = (when != null ? when : ctx.currentTime);
+    const o1 = ctx.createOscillator(); o1.type='triangle'; o1.frequency.value = freq;
+    const o2 = ctx.createOscillator(); o2.type='triangle'; o2.frequency.value = freq*1.003;
+    const f = ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value = 1600;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.30, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+    o1.connect(f); o2.connect(f); f.connect(g); g.connect(musicGain);
+    o1.start(t); o2.start(t); o1.stop(t+1.5); o2.stop(t+1.5);
+  }
+  function noise(dur, vol, freq, when){
+    if(!ctx || !enabled || !noiseBuf) return;
+    const t = (when != null ? when : ctx.currentTime);
+    const src = ctx.createBufferSource(); src.buffer = noiseBuf;
+    const f = ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value = freq||1000; f.Q.value = 1.1;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(sfxGain);
+    src.start(t); src.stop(t + dur + 0.05);
+  }
+  function sweepNoise(dur, vol, f0, f1, when){
+    if(!ctx || !enabled || !noiseBuf) return;
+    const t = (when != null ? when : ctx.currentTime);
+    const src = ctx.createBufferSource(); src.buffer = noiseBuf;
+    const f = ctx.createBiquadFilter(); f.type='lowpass';
+    f.frequency.setValueAtTime(f0, t); f.frequency.linearRampToValueAtTime(f1, t + dur);
+    const g = ctx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(sfxGain);
+    src.start(t); src.stop(t + dur + 0.05);
+  }
+
+  function play(name){
+    if(!enabled) return;
+    if(!ensure()) return;
+    const t = ctx.currentTime;
+    switch(name){
+      case 'hit':      noise(0.09, 0.5, 900, t); tone(160, 0.1, 0.35, 'square', t); break;
+      case 'crit':     noise(0.12, 0.65, 1600, t); tone(120, 0.14, 0.4, 'sawtooth', t); break;
+      case 'enemyHit': noise(0.1, 0.5, 480, t); tone(110, 0.12, 0.35, 'square', t); break;
+      case 'dodge':    sweepNoise(0.16, 0.22, 2000, 700, t); break;
+      case 'heal':     tone(523.25, 0.4, 0.3, 'sine', t); tone(659.25, 0.5, 0.28, 'sine', t+0.12); break;
+      case 'skill':    sweepNoise(0.3, 0.45, 500, 1800, t); break;
+      case 'buff':     tone(392, 0.3, 0.25, 'triangle', t); tone(523.25, 0.4, 0.25, 'triangle', t+0.1); break;
+      case 'poison':   noise(0.2, 0.3, 700, t); break;
+      case 'victory':  [523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,0.5,0.32,'triangle',t+i*0.14)); break;
+      case 'defeat':   [440,349.23,293.66,220].forEach((f,i)=>tone(f,0.55,0.3,'triangle',t+i*0.16)); break;
+      case 'levelup':  [587.33,739.99,880,1174.66].forEach((f,i)=>tone(f,0.45,0.3,'triangle',t+i*0.1)); break;
+      case 'gold':     tone(880,0.15,0.3,'sine',t); tone(1318.5,0.25,0.28,'sine',t+0.08); break;
+      case 'click':    noise(0.04, 0.25, 2000, t); break;
+      case 'buy':      tone(880,0.12,0.3,'sine',t); tone(1108.7,0.2,0.3,'sine',t+0.07); break;
+    }
+  }
+
+  function schedule(){
+    if(!ctx || !musicOn || !enabled) return;
+    while(nextTime < ctx.currentTime + 0.4){
+      const idx = step % MELODY.length;
+      pluck(SCALE[MELODY[idx]], nextTime);
+      if(step % 8 === 0) tone(73.42, 1.6, 0.16, 'sine', nextTime, musicGain); // 低音铺底
+      step++;
+      nextTime += STEP;
+    }
+  }
+  function startMusic(){
+    if(!ensure() || musicOn) return;
+    musicOn = true; step = 0; nextTime = ctx.currentTime + 0.05;
+    timer = setInterval(schedule, 200);
+  }
+  function stopMusic(){
+    musicOn = false;
+    if(timer){ clearInterval(timer); timer = null; }
+  }
+
+  return { unlock, setEnabled, play, startMusic, stopMusic, isEnabled: () => enabled };
+})();
+
+/* ============================================================
+   《醉凌云 · 江湖冒险》v2.0 —— 游戏引擎
+   剧情 / 技能装配·技能点·五行相克 / 背包·装备 / 商店 / 地图·机遇
+   多重声望 / 战斗狠话 / 升级 / 存档 / 程序化 AI 叙事 / 可选外部 LLM
+   ============================================================ */
+'use strict';
+
+/* ---------- 工具 ---------- */
+const $ = id => document.getElementById(id);
+const rand = n => Math.floor(Math.random() * n);
+const pick = arr => arr[rand(arr.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const roll = chance => Math.random() * 100 < chance;
+
+/* ---------- 全局状态 ---------- */
+let S = null, B = null;
+let typingTimer = null, typingDone = true, currentFull = '';
+let AI_CFG = { enabled:false, base:'', key:'', model:'deepseek-chat' };
+const SAVE_KEY = 'zui-lingyun-save-v2';
+
+/* ---------- 程序化叙事 ---------- */
+const AMBIENCE = [
+  '风自凌云台上掠过，吹动衣袂。','远处钟声悠远，惊起寒鸦数点。','夜色如墨，灯火摇曳不定。',
+  '你握紧兵刃，只觉掌心微凉。','山风呜咽，似有旧日的哭声。','一缕暗香浮过，不知是酒，还是杀机。',
+];
+const TAUNTS = {
+  mugui:['「伤我者，毒已入骨。」','「你，还不够格。」'],
+  lengji:['「剑名醉凌云，请赐教。」','「为苍生，出剑。」'],
+  suqianyu:['「本宫面前，也敢放肆？」','「跪下，或死。」'],
+  suwenyan:['「笑一笑，送你上路。」','「别急，刀还没出鞘呢。」'],
+  fangni:['「挡本王路者，死。」','「你还不配本王出手。」'],
+  baiweiran:['「邪魔外道，伏诛。」','「放下兵刃，回头是岸。」'],
+  custom:['「挡我者，死。」','「这一剑，你受得住吗？」'],
+};
+function genAmbience(){ return pick(AMBIENCE); }
+function playerTaunt(p){ const t = TAUNTS[p.kitLine] || TAUNTS.custom; return pick(t); }
+function narrate(tpl, ctx){ return tpl.replace(/\{(\w+)\}/g, (m,k) => (ctx[k] != null ? ctx[k] : m)); }
+function dmgPhrase(dmg, crit){
+  if(crit) return pick(['正中要害，血花飞溅','会心一击，破甲而入','这一击直取命门','杀招既出，鲜血四溅']);
+  if(dmg >= 30) return pick(['重创敌手','对方闷哼一声','血染衣襟','对方踉跄后退']);
+  return pick(['对方吃痛','留下一道血痕','对方皱眉忍痛','伤可见骨']);
+}
+
+async function aiGenerate(prompt){
+  if(!AI_CFG.enabled || !AI_CFG.base || !AI_CFG.model) return null;
+  const url = AI_CFG.base.replace(/\/+$/, '') + '/chat/completions';
+  const headers = { 'Content-Type':'application/json' };
+  if(AI_CFG.key) headers['Authorization'] = 'Bearer ' + AI_CFG.key;
+  try{
+    const res = await fetch(url, { method:'POST', headers, body: JSON.stringify({
+      model: AI_CFG.model,
+      messages:[{ role:'system', content:'你是一位古风武侠小说的旁白，文风典雅克制，用词精炼。' },
+                 { role:'user', content: prompt }],
+      temperature:0.95, max_tokens:120, stream:false
+    })});
+    if(!res.ok) return null;
+    const data = await res.json();
+    const t = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    return (typeof t === 'string' && t.trim()) ? t.trim() : null;
+  }catch(e){ return null; }
+}
+
+/* ---------- 属性 / 角色构建 ---------- */
+const MUL_KEYS = ['hpMul','mpMul','atkMul','defMul','dmgDealtMul','dmgTakenMul','healMul'];
+const ADD_KEYS = ['spdAdd','evaAdd','critAdd','defAdd','hpAdd','mpAdd','battleEndHeal'];
+const BOOL_KEYS = ['firstStrike','clue','persuade','revive'];
+
+function mergeMods(list){
+  const m = {}; MUL_KEYS.forEach(k => m[k]=1); ADD_KEYS.forEach(k => m[k]=0); BOOL_KEYS.forEach(k => m[k]=false);
+  list.forEach(mod => { if(!mod) return;
+    MUL_KEYS.forEach(k => { if(mod[k]) m[k]*=mod[k]; });
+    ADD_KEYS.forEach(k => { if(mod[k]) m[k]+=mod[k]; });
+    BOOL_KEYS.forEach(k => { if(mod[k]) m[k]=true; });
+  });
+  return m;
+}
+function xpNeed(level){ return LEVEL_CURVE[level] || (LEVEL_CURVE[LEVEL_CURVE.length-1] + 100); }
+
+function buildPlayer(cid, custom, destinyId, talentId){
+  const isCustom = cid === 'custom';
+  let baseStats, name, role, emoji, kitLine, customStyle = null, grad = ['#2a2a2a','#111'];
+  const mods = [];
+  if(!isCustom){
+    const c = CHARACTERS.find(x => x.id === cid);
+    baseStats = c.stats; name = c.name; role = c.role; emoji = c.emoji; kitLine = c.id; grad = c.grad;
+    destinyId = c.destiny; talentId = c.talent;
+  } else {
+    const roleObj = CUSTOM_ROLES.find(x => x.id === custom.role);
+    const styleObj = CUSTOM_STYLES.find(x => x.id === custom.style);
+    baseStats = { hp:230, mp:60, atk:15, def:11, spd:16, crit:12, eva:12 };
+    name = custom.name; role = roleObj.name; emoji = '🎭'; kitLine = 'custom'; customStyle = styleObj.id;
+    mods.push(roleObj.mod, styleObj.mod);
+  }
+  const destiny = DESTINIES.find(x => x.id === destinyId);
+  const talent = TALENTS.find(x => x.id === talentId);
+  mods.push(destiny.mod, talent.mod);
+  const m = mergeMods(mods);
+
+  const maxHp = Math.round(baseStats.hp * m.hpMul + m.hpAdd);
+  const maxMp = Math.round(baseStats.mp * m.mpMul + m.mpAdd);
+  const atk = Math.round(baseStats.atk * m.atkMul);
+  const def = Math.round(baseStats.def * m.defMul + m.defAdd);
+  const spd = baseStats.spd + m.spdAdd;
+  const crit = baseStats.crit + m.critAdd;
+  const eva = baseStats.eva + m.evaAdd;
+
+  const starter = KITS[cid === 'custom' ? customStyle : cid].starter.slice();
+  const owned = Array.from(new Set([...starter, destiny.skill, talent.skill].filter(Boolean))).map(id => ({ id, level:1 }));
+
+  const p = {
+    isCustom, cid, kitLine, customStyle, name, role, emoji, grad,
+    level:1, xp:0, gold:120, skillPoints:0,
+    baseMaxHp:maxHp, baseMaxMp:maxMp, baseAtk:atk, baseDef:def, baseSpd:spd, baseCrit:crit, baseEva:eva,
+    maxHp, maxMp, hp:maxHp, mp:maxMp, atk, def, spd, crit, eva,
+    destiny:{ id:destiny.id, name:destiny.name, tag:destiny.tag },
+    talent:{ id:talent.id, name:talent.name, tag:talent.tag },
+    traits:{ dmgDealtMul:m.dmgDealtMul, dmgTakenMul:m.dmgTakenMul, healMul:m.healMul,
+      battleEndHeal:m.battleEndHeal, clue:m.clue, persuade:m.persuade, revive:m.revive, firstStrike:m.firstStrike },
+    ownedSkills: owned,
+    equippedSkills: owned.slice(0, MAX_SKILLS_EQUIP).map(o => o.id),
+    obtainable: KITS[cid === 'custom' ? customStyle : cid].obtainable.slice(),
+    inventory: { jinchuang:3, huiqi:2 },
+    equipment: { weapon:null, armor:null, acc:null },
+    reputation: { 朝堂:0, 江湖:0, 门派:0 },
+    unlockedRegions: ['lingyuntai'],
+  };
+  return p;
+}
+
+/* ---------- 技能系统 ---------- */
+function skillPower(skill, level){ return skill.power * (1 + 0.15 * ((level||1) - 1)); }
+function canLearn(p, skill){
+  if(!skill.req) return true;
+  if(skill.req.char && p.cid !== skill.req.char) return false;
+  if(skill.req.destiny && p.destiny.id !== skill.req.destiny) return false;
+  if(skill.req.talent && p.talent.id !== skill.req.talent) return false;
+  return true;
+}
+function ownLevel(p, sid){ const o = p.ownedSkills.find(x => x.id === sid); return o ? o.level : 0; }
+function ownsSkill(p, sid){ return ownLevel(p, sid) > 0; }
+function learnSkill(p, sid, force){
+  const skill = SKILLS[sid];
+  if(!skill || ownsSkill(p, sid)) return false;
+  if(!force && !canLearn(p, skill)) return false;
+  p.ownedSkills.push({ id:sid, level:1 });
+  if(p.equippedSkills.length < MAX_SKILLS_EQUIP) p.equippedSkills.push(sid);
+  return true;
+}
+function learnRandomSkill(p){
+  const pool = p.obtainable.filter(sid => SKILLS[sid] && canLearn(p, SKILLS[sid]) && !ownsSkill(p, sid));
+  if(!pool.length) return null;
+  const sid = pick(pool);
+  learnSkill(p, sid, false);
+  return sid;
+}
+function ultimateSkillFor(p){ return p.isCustom ? ULTIMATE[p.customStyle] : ULTIMATE[p.cid]; }
+
+/* ---------- 装备 ---------- */
+function applyEquipDelta(p, item, sign){
+  const e = item.effect || {};
+  const d = { atk:e.atk||0, def:e.def||0, spd:e.spd||0, crit:e.crit||0, eva:e.eva||0, hp:e.hp||0, mp:e.mp||0 };
+  p.atk += d.atk*sign; p.def += d.def*sign; p.spd += d.spd*sign; p.crit += d.crit*sign; p.eva += d.eva*sign;
+  p.maxHp += d.hp*sign; p.maxMp += d.mp*sign;
+  if(sign > 0){ p.hp += d.hp; p.mp += d.mp; }
+  else { p.hp = clamp(p.hp, 1, p.maxHp); p.mp = clamp(p.mp, 0, p.maxMp); }
+}
+function equipItem(p, itemId){
+  const item = ITEMS[itemId];
+  if(!item || !['weapon','armor','acc'].includes(item.type)) return false;
+  const slot = item.type;
+  if(p.equipment[slot]) applyEquipDelta(p, ITEMS[p.equipment[slot]], -1);
+  p.equipment[slot] = itemId;
+  applyEquipDelta(p, item, 1);
+  return true;
+}
+function unequipItem(p, slot){
+  if(!p.equipment[slot]) return;
+  applyEquipDelta(p, ITEMS[p.equipment[slot]], -1);
+  p.equipment[slot] = null;
+}
+
+/* ---------- 声望 ---------- */
+function repTotal(p){ return (p.reputation.朝堂||0) + (p.reputation.江湖||0) + (p.reputation.门派||0); }
+function repPenalty(p){
+  const t = repTotal(p);
+  if(t < 0){ const k = Math.min(6, -t); return { atkPct:-0.04*k, shopPct:0.08*k }; }
+  return null;
+}
+
+/* ---------- 屏幕切换 ---------- */
+const SCREENS = ['screen-intro','screen-title','screen-character','screen-custom','screen-destiny','screen-dossier','screen-story','screen-battle','screen-ending','screen-help','screen-inventory','screen-skills','screen-shop','screen-map','screen-char'];
+function showScreen(id){
+  SCREENS.forEach(s => { $(s).style.display = (s === id) ? 'block' : 'none'; });
+  $('hud').style.display = (id === 'screen-story' || id === 'screen-battle') ? 'block' : 'none';
+  if(id === 'screen-title'){ $('btn-continue').style.display = hasSave() ? 'block' : 'none'; AudioSys.stopMusic(); }
+  if(id === 'screen-story' || id === 'screen-battle') updateHud();
+  window.scrollTo(0,0);
+}
+
+let toastTimer = null;
+function toast(msg){
+  $('toast-text').textContent = msg; $('toast').style.display = 'block';
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('toast').style.display = 'none'; }, 2200);
+}
+
+/* ---------- 存档 ---------- */
+function saveGame(){
+  if(!S || !S.player) return;
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify({ version:2, S, AI_CFG, savedAt: Date.now() })); }catch(e){}
+}
+function loadGame(){
+  try{ const raw = localStorage.getItem(SAVE_KEY); if(!raw) return false;
+    const d = JSON.parse(raw); if(d && d.S && d.S.player){ S = d.S; AI_CFG = d.AI_CFG || AI_CFG; return true; } }catch(e){}
+  return false;
+}
+function hasSave(){ try{ return !!localStorage.getItem(SAVE_KEY); }catch(e){ return false; } }
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+
+/* ---------- 初始化 ---------- */
+function init(){
+  $('btn-new').onclick = newGame;
+  $('btn-continue').onclick = continueGame;
+  $('btn-help').onclick = () => showScreen('screen-help');
+  $('btn-help-back').onclick = () => showScreen('screen-title');
+  $('btn-settings').onclick = openSettings;
+  $('btn-menu').onclick = openMenu;
+  $('btn-ending-restart').onclick = newGame;
+  $('btn-ending-menu').onclick = () => { clearSave(); showScreen('screen-title'); };
+
+  $('btn-char-back').onclick = () => showScreen('screen-title');
+  $('btn-custom-back').onclick = () => showScreen('screen-character');
+  $('btn-custom-ok').onclick = confirmCustom;
+  $('btn-destiny-ok').onclick = confirmDestiny;
+  $('btn-dossier-back').onclick = () => showScreen('screen-character');
+  $('btn-dossier-ok').onclick = confirmDossier;
+
+  $('btn-inv-back').onclick = closeToStory;
+  $('btn-skill-back').onclick = closeToStory;
+  $('btn-shop-back').onclick = closeToStory;
+  $('btn-map-back').onclick = closeToStory;
+  $('btn-char-back2').onclick = closeToStory;
+
+  $('btn-cfg-cancel').onclick = () => $('modal').style.display = 'none';
+  $('btn-cfg-save').onclick = saveSettings;
+
+  $('m-char').onclick = () => { closeMenu(); showScreen('screen-char'); renderCharSheet(); };
+  $('m-bag').onclick = () => { closeMenu(); showScreen('screen-inventory'); renderInventory(); };
+  $('m-skill').onclick = () => { closeMenu(); showScreen('screen-skills'); renderSkills(); };
+  $('m-map').onclick = () => { closeMenu(); showScreen('screen-map'); renderMap(); };
+  $('m-shop').onclick = () => { closeMenu(); openShopFromMenu(); };
+  $('m-save').onclick = () => { closeMenu(); saveGame(); toast('进度已保存'); };
+  $('m-title').onclick = () => { closeMenu(); saveGame(); showScreen('screen-title'); };
+  $('m-close').onclick = closeMenu;
+  $('m-sound').onclick = toggleSound;
+
+  document.addEventListener('pointerdown', () => AudioSys.unlock(), { passive:true });
+  let snd = '1'; try{ snd = localStorage.getItem('zui-lingyun-sound') || '1'; }catch(e){}
+  AudioSys.setEnabled(snd !== '0');
+  updateSoundLabel();
+
+  $('map-ok').onclick = () => { $('map-modal').style.display = 'none'; resolveEncounter(); };
+
+  $('screen-story').onclick = e => {
+    if(e.target.closest('.choice')) return;
+    if(!typingDone){ finishStoryTyping(); return; }
+    if(S && S.awaitingChoice) return;
+    if(S && S.pendingNext) goto(S.pendingNext);
+  };
+
+  loadAICfg();
+  setupIntro();
+}
+
+/* ---------- 开场动画 ---------- */
+let introActive = false;
+function setupIntro(){
+  const v = $('intro-video');
+  let decided = false;
+  const finish = () => { if(decided) return; decided = true; introActive = false; showScreen('screen-title'); };
+
+  $('screen-intro').addEventListener('click', e => { if(e.target.id !== 'intro-sound') enterTitle(); });
+  $('intro-sound').addEventListener('click', e => { e.stopPropagation(); enableIntroSound(); });
+  document.addEventListener('keydown', () => { if(introActive) enterTitle(); });
+
+  v.addEventListener('loadeddata', () => {
+    if(decided) return; decided = true; introActive = true;
+    showScreen('screen-intro');
+    const p = v.play(); if(p && p.catch) p.catch(()=>{});
+    $('intro-sound').style.display = 'inline-block';
+    $('intro-hint').textContent = '点击任意处进入江湖 · 中途可跳过';
+  });
+  v.addEventListener('error', finish);
+  v.addEventListener('ended', () => { introActive = true; $('intro-hint').textContent = '点击任意处进入江湖'; $('intro-sound').style.display = 'none'; });
+  v.src = 'intro.mp4';
+  v.load();
+  setTimeout(() => { if(!decided) finish(); }, 1500);
+}
+function enterTitle(){
+  if(!introActive) return;
+  introActive = false;
+  try{ $('intro-video').pause(); }catch(e){}
+  showScreen('screen-title');
+}
+function enableIntroSound(){
+  const v = $('intro-video');
+  v.muted = false; v.currentTime = 0;
+  const p = v.play(); if(p && p.catch) p.catch(()=>{});
+  $('intro-sound').style.display = 'none';
+  $('intro-hint').textContent = '点击任意处进入江湖 · 中途可跳过';
+}
+
+/* ---------- 菜单 ---------- */
+function openMenu(){ $('menu-modal').style.display = 'flex'; }
+function closeMenu(){ $('menu-modal').style.display = 'none'; }
+function closeToStory(){ if(S && S.node) showScreen('screen-story'); else showScreen('screen-title'); }
+function updateSoundLabel(){ $('m-sound').textContent = '音效：' + (AudioSys.isEnabled() ? '开' : '关'); }
+function toggleSound(){
+  AudioSys.setEnabled(!AudioSys.isEnabled());
+  try{ localStorage.setItem('zui-lingyun-sound', AudioSys.isEnabled() ? '1' : '0'); }catch(e){}
+  if(AudioSys.isEnabled()){ AudioSys.unlock(); if(S && S.node) AudioSys.startMusic(); }
+  updateSoundLabel();
+  AudioSys.play('click');
+}
+
+/* ---------- 新游戏 / 继续 ---------- */
+function newGame(){
+  clearSave();
+  S = { flags:{}, node:STORY.start, pendingNext:null, awaitingChoice:false, history:[], activeShop:null };
+  selDestiny = null; selTalent = null;
+  showScreen('screen-character');
+  renderCharacters();
+}
+function continueGame(){
+  if(!loadGame()){ toast('没有找到存档'); return; }
+  renderStoryScreen();
+}
+
+/* ---------- 立绘 ---------- */
+const portraitCache = {};
+function setPortrait(container, key){
+  if(!container) return;
+  const cached = portraitCache[key];
+  if(cached){
+    if(cached.svg){ container.innerHTML = cached.svg; }
+    else { container.innerHTML = ''; container.appendChild(cached.img.cloneNode()); }
+    return;
+  }
+  tryPortrait(container, key, 'portraits/' + key + '.png', () => {
+    tryPortrait(container, key, key + '.png', () => {
+      const svg = inkPortraitSVG(key);
+      portraitCache[key] = { svg };
+      container.innerHTML = svg;
+    });
+  });
+}
+function tryPortrait(container, key, src, onfail){
+  const img = new Image();
+  img.className = 'portrait-img';
+  img.alt = key;
+  img.onload = () => { portraitCache[key] = { img }; container.innerHTML = ''; container.appendChild(img); };
+  img.onerror = onfail;
+  img.src = src;
+}
+
+/* ---------- 角色选择 ---------- */
+function renderCharacters(){
+  const grid = $('char-grid');
+  grid.innerHTML = '';
+  CHARACTERS.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'card char-card';
+    el.innerHTML = `
+      <div class="portrait"></div>
+      <div class="head"><div class="nm">${c.name}</div><div class="role">${c.role}</div></div>
+      <div class="cp-tag">CP · ${c.cp}</div>
+      <div class="body">${c.desc}</div>
+      <div class="premise">${c.premise}</div>`;
+    setPortrait(el.querySelector('.portrait'), c.id);
+    el.onclick = () => selectCharacter(c.id);
+    grid.appendChild(el);
+  });
+  const custom = document.createElement('div');
+  custom.className = 'card char-card';
+  custom.innerHTML = `
+    <div class="portrait"></div>
+    <div class="head"><div class="nm">自建角色</div><div class="role">无名之辈 · 专属剧情</div></div>
+    <div class="cp-tag">隐藏结局</div>
+    <div class="body">你不记得过去，只带着一纸凌云帖北上。姓名、出身、武学、命格、天赋皆由你定，开启独一无二的身世之谜。</div>`;
+  setPortrait(custom.querySelector('.portrait'), 'custom');
+  custom.onclick = () => { showScreen('screen-custom'); renderCustom(); };
+  grid.appendChild(custom);
+}
+
+function selectCharacter(cid){
+  S.pendingChar = cid;
+  showScreen('screen-dossier');
+  renderDossier(cid);
+}
+
+function renderDossier(cid){
+  const c = CHARACTERS.find(x => x.id === cid);
+  const d = DESTINIES.find(x => x.id === c.destiny);
+  const t = TALENTS.find(x => x.id === c.talent);
+  const starter = KITS[cid].starter.map(s => SKILLS[s].name).join('、');
+  $('dossier-body').innerHTML = `
+    <div class="dossier-top">
+      <div class="portrait big"></div>
+      <div><div class="nm">${c.name} <span class="role">${c.role}</span></div><div class="cp-tag">命定之人 · ${c.cp}</div></div>
+    </div>
+    <div class="dossier-desc">${c.desc}</div>
+    <div class="premise-box"><b>剧情前提</b>${c.premise}</div>
+    <div class="opt-title">系统匹配 · 命格 / 天赋</div>
+    <div class="chip-row">
+      <span class="chip">${d.emoji} 命格·${d.name}（${d.tag}）</span>
+      <span class="chip">${t.emoji} 天赋·${t.name}（${t.tag}）</span>
+    </div>
+    <div class="opt-title">初始武学</div>
+    <div class="chip-row">${starter.split('、').map(s=>`<span class="chip">${s}</span>`).join('')}</div>`;
+  setPortrait($('dossier-body').querySelector('.portrait.big'), cid);
+}
+function confirmDossier(){
+  const c = CHARACTERS.find(x => x.id === S.pendingChar);
+  S.player = buildPlayer(c.id, null, c.destiny, c.talent);
+  S.node = STORY.start; S.pendingNext = null;
+  saveGame();
+  renderStoryScreen();
+}
+
+/* ---------- 自建角色 ---------- */
+function renderCustom(){
+  const roles = $('custom-roles'), styles = $('custom-styles');
+  roles.innerHTML = ''; styles.innerHTML = '';
+  CUSTOM_ROLES.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'card'; el.style.cursor = 'pointer';
+    el.innerHTML = `<div class="head"><div class="nm">${r.emoji} ${r.name}</div></div><div class="body">${r.desc}</div>`;
+    el.onclick = () => selectOnce('customRole', r.id, roles); el.dataset.id = r.id; roles.appendChild(el);
+  });
+  CUSTOM_STYLES.forEach(st => {
+    const el = document.createElement('div');
+    el.className = 'card'; el.style.cursor = 'pointer';
+    el.innerHTML = `<div class="head"><div class="nm">${st.emoji} ${st.name}</div></div><div class="body">${st.desc}</div>`;
+    el.onclick = () => selectOnce('customStyle', st.id, styles); el.dataset.id = st.id; styles.appendChild(el);
+  });
+  $('custom-name').value = S.customName || '';
+}
+function selectOnce(key, id, container){
+  S[key] = id;
+  Array.from(container.children).forEach(c => c.style.borderColor = (c.dataset.id === id) ? 'var(--gold)' : 'var(--line)');
+}
+function confirmCustom(){
+  const name = $('custom-name').value.trim();
+  if(!name || name.length < 2){ toast('请填写 2-6 字的姓名'); return; }
+  if(!S.customRole || !S.customStyle){ toast('请选择出身与武学倾向'); return; }
+  S.pendingChar = 'custom'; S.customName = name;
+  showScreen('screen-destiny'); renderDestiny();
+}
+
+/* ---------- 命格 / 天赋（自建） ---------- */
+let selDestiny = null, selTalent = null;
+function renderDestiny(){
+  const dg = $('destiny-grid'), tg = $('talent-grid');
+  dg.innerHTML = ''; tg.innerHTML = '';
+  DESTINIES.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'card'; el.style.cursor = 'pointer';
+    el.innerHTML = `<div class="head"><div class="nm">${d.emoji} ${d.name}</div><div class="role">${d.star} · ${d.tag}</div></div><div class="body">${d.desc}</div>`;
+    el.onclick = () => { selDestiny = d.id; markSelect(dg, el); }; dg.appendChild(el);
+  });
+  TALENTS.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'card'; el.style.cursor = 'pointer';
+    el.innerHTML = `<div class="head"><div class="nm">${t.emoji} ${t.name}</div><div class="role">${t.tag}</div></div><div class="body">${t.desc}</div>`;
+    el.onclick = () => { selTalent = t.id; markSelect(tg, el); }; tg.appendChild(el);
+  });
+  updateDestinyOk();
+}
+function markSelect(container, el){
+  Array.from(container.children).forEach(c => c.style.borderColor = 'var(--line)');
+  el.style.borderColor = 'var(--gold)'; updateDestinyOk();
+}
+function updateDestinyOk(){ const ok = $('btn-destiny-ok'); ok.disabled = !(selDestiny && selTalent); ok.style.opacity = ok.disabled ? .45 : 1; }
+function confirmDestiny(){
+  if(!selDestiny || !selTalent){ toast('请选择命格与天赋'); return; }
+  S.player = buildPlayer('custom', { role:S.customRole, style:S.customStyle, name:S.customName }, selDestiny, selTalent);
+  S.node = STORY.start; S.pendingNext = null;
+  saveGame(); renderStoryScreen();
+}
+
+/* ---------- 剧情导航 ---------- */
+function renderStoryScreen(){ showScreen('screen-story'); AudioSys.startMusic(); goto(S.node || STORY.start); }
+function goto(id){
+  if(id === '__ending__' || !id){ showEnding(computeEnding()); return; }
+  S.node = id;
+  const node = STORY.nodes[id];
+  if(!node){ showEnding(computeEnding()); return; }
+  saveGame();
+  applyEffects(node.effects);
+  if(node.type === 'combat'){ startBattle(node, 'story'); return; }
+  if(node.type === 'choice'){ renderChoice(node); return; }
+  renderNarrative(node);
+}
+
+function nodeText(node){
+  if(node.romance){ const key = S.player.kitLine || 'custom'; return ROMANCE[key] || ''; }
+  if(node.exclusive){ const key = S.player.kitLine || 'custom'; return EXCLUSIVE[key] || ''; }
+  if(node.ultimate){
+    const sid = ultimateSkillFor(S.player);
+    learnSkill(S.player, sid, true);
+    const o = S.player.ownedSkills.find(x => x.id === sid);
+    if(o && o.level < 2) o.level = 2;
+    if(!S.player.equippedSkills.includes(sid) && S.player.equippedSkills.length < MAX_SKILLS_EQUIP) S.player.equippedSkills.push(sid);
+    return (ULTIMATE_TEXT[S.player.kitLine] || ULTIMATE_TEXT.default) + (sid ? `\n【习得 ${SKILLS[sid].name}】` : '');
+  }
+  if(node.id === 'pro_start'){ const key = S.player.kitLine || 'custom'; return PROLOGUES[key] || PROLOGUES.mugui; }
+  return node.text || '';
+}
+
+function clearAiLines(){ document.querySelectorAll('#screen-story .ai-line').forEach(n => n.remove()); }
+function renderNarrative(node){
+  resetTyping(); clearAiLines();
+  $('story-speaker').style.display = 'none'; $('story-choices').innerHTML = '';
+  $('story-chapter').textContent = node.chapter || ''; $('story-hint').style.display = 'none';
+  const body = nodeText(node);
+  const isSpecial = !!(node.romance || node.exclusive || node.ultimate || node.id === 'pro_start');
+  currentFull = isSpecial ? body : (genAmbience() + '\n' + body);
+  S.pendingNext = node.next;
+  typeStory($('story-text'), currentFull);
+}
+function renderChoice(node){
+  resetTyping(); clearAiLines();
+  $('story-speaker').style.display = 'none'; $('story-chapter').textContent = node.chapter || '';
+  $('story-text').textContent = node.text || ''; $('story-hint').style.display = 'none';
+  S.awaitingChoice = true; S.pendingNext = null;
+  const box = $('story-choices'); box.innerHTML = '';
+  node.choices.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.className = 'choice';
+    b.innerHTML = `<span class="key">${'甲乙丙丁'[i] || i+1}.</span>${c.text}<span class="hint">${c.hint || ''}</span>`;
+    b.onclick = () => choose(c); box.appendChild(b);
+  });
+}
+function choose(c){ applyEffects(c); S.awaitingChoice = false; $('story-choices').innerHTML = ''; goto(c.next); }
+
+/* ---------- 打字机 ---------- */
+function resetTyping(){ if(typingTimer){ clearInterval(typingTimer); typingTimer = null; } typingDone = false; }
+function typeStory(el, text){
+  el.textContent = ''; let i = 0;
+  typingTimer = setInterval(() => { i++; el.textContent = text.slice(0, i);
+    if(i >= text.length){ clearInterval(typingTimer); typingTimer = null; typingDone = true; onNarrativeComplete(); }
+  }, 22);
+}
+function finishStoryTyping(){
+  if(typingTimer){ clearInterval(typingTimer); typingTimer = null; }
+  if(typingDone) return; typingDone = true;
+  $('story-text').textContent = currentFull; onNarrativeComplete();
+}
+function onNarrativeComplete(){
+  $('story-hint').style.display = S.pendingNext ? 'block' : 'none';
+  maybeAIEnrich($('story-text'), currentFull);
+}
+function typeInto(el, text, speed){
+  el.textContent = ''; let i = 0;
+  const t = setInterval(() => { i++; el.textContent = text.slice(0, i); if(i >= text.length) clearInterval(t); }, speed || 26);
+}
+
+/* ---------- 效果 / 升级 ---------- */
+function applyEffects(effects){
+  if(!effects) return;
+  const p = S.player;
+  if(effects.flags) Object.keys(effects.flags).forEach(k => { S.flags[k] = (S.flags[k]||0) + effects.flags[k]; });
+  if(effects.xp) gainXp(effects.xp);
+  if(effects.gold) p.gold += effects.gold;
+  if(effects.skillPoint) p.skillPoints += effects.skillPoint;
+  if(effects.reputation) Object.keys(effects.reputation).forEach(k => { p.reputation[k] = (p.reputation[k]||0) + effects.reputation[k]; });
+  if(effects.item) Object.keys(effects.item).forEach(k => { addItem(p, k, effects.item[k]); });
+  if(effects.skill){
+    if(effects.skill === true){ const s = learnRandomSkill(p); if(s) toast('悟得武学：' + SKILLS[s].name); }
+    else if(learnSkill(p, effects.skill, true)) toast('习得武学：' + SKILLS[effects.skill].name);
+  }
+  if(effects.unlockRegion) unlockRegion(p, effects.unlockRegion);
+  if(effects.unlockRegion2) unlockRegion(p, effects.unlockRegion2);
+  if(effects.hpRestore) p.hp = clamp(Math.round(p.hp + p.maxHp * effects.hpRestore), 1, p.maxHp);
+  if(effects.hp) p.hp = clamp(p.hp + effects.hp, 1, p.maxHp);
+  if(effects.mp) p.mp = clamp(p.mp + effects.mp, 0, p.maxMp);
+  updateHud();
+}
+
+function gainXp(n){
+  const p = S.player; p.xp += n; let leveled = false;
+  while(p.level < MAX_LEVEL && p.xp >= xpNeed(p.level)){
+    p.xp -= xpNeed(p.level); p.level++; leveled = true;
+    p.baseMaxHp += GROWTH.hp; p.baseMaxMp += GROWTH.mp; p.baseAtk += GROWTH.atk; p.baseDef += GROWTH.def;
+    if(p.level % 2 === 0) p.baseSpd += 1;
+    p.maxHp = p.baseMaxHp + equipBonus(p,'hp'); p.maxMp = p.baseMaxMp + equipBonus(p,'mp');
+    p.atk = p.baseAtk + equipBonus(p,'atk'); p.def = p.baseDef + equipBonus(p,'def');
+    p.spd = p.baseSpd + equipBonus(p,'spd'); p.crit = p.baseCrit + equipBonus(p,'crit'); p.eva = p.baseEva + equipBonus(p,'eva');
+    p.hp = p.maxHp; p.mp = p.maxMp; p.skillPoints += 1;
+    toast(`修为突破！境界 Lv.${p.level}，获得 1 点技能点，气血内力尽复`);
+    AudioSys.play('levelup');
+  }
+  if(leveled) saveGame();
+  updateHud();
+}
+function equipBonus(p, key){
+  let s = 0;
+  ['weapon','armor','acc'].forEach(slot => { const id = p.equipment[slot]; if(id && ITEMS[id] && ITEMS[id].effect[key]) s += ITEMS[id].effect[key]; });
+  return s;
+}
+
+/* ---------- 物品 ---------- */
+function addItem(p, id, qty){ p.inventory[id] = (p.inventory[id]||0) + (qty||1); }
+function useItem(id){
+  const p = S.player, item = ITEMS[id];
+  if(!item || (p.inventory[id]||0) <= 0) return;
+  if(item.type === 'weapon' || item.type === 'armor' || item.type === 'acc'){ equipItem(p, id); p.inventory[id]--; toast('已装备 ' + item.name); }
+  else {
+    const e = item.effect || {}; let msg = '';
+    if(e.healPct){ const h = Math.round(p.maxHp * e.healPct); p.hp = clamp(p.hp + h, 1, p.maxHp); msg += `回复气血 ${h} `; }
+    if(e.mpPct){ const m = Math.round(p.maxMp * e.mpPct); p.mp = clamp(p.mp + m, 0, p.maxMp); msg += `回复内力 ${m} `; }
+    if(e.mpAmt){ p.mp = clamp(p.mp + e.mpAmt, 0, p.maxMp); msg += `回复内力 ${e.mpAmt} `; }
+    p.inventory[id]--;
+    if(p.inventory[id] <= 0) delete p.inventory[id];
+    toast(msg || '使用 ' + item.name);
+  }
+  saveGame(); renderInventory();
+}
+
+/* ---------- HUD ---------- */
+function updateHud(){
+  if(!S || !S.player) return;
+  const p = S.player;
+  $('hud-name').textContent = p.name; $('hud-lv').textContent = 'Lv.' + p.level;
+  const node = S.node ? STORY.nodes[S.node] : null;
+  $('hud-chapter').textContent = node ? (node.chapter || '') : '';
+  $('hud-hp').textContent = p.hp + '/' + p.maxHp; $('hud-mp').textContent = p.mp + '/' + p.maxMp;
+  $('hud-xp').textContent = (p.level >= MAX_LEVEL ? '满' : p.xp + '/' + xpNeed(p.level));
+  $('hud-hpfill').style.width = (p.hp/p.maxHp*100) + '%'; $('hud-mpfill').style.width = (p.mp/p.maxMp*100) + '%';
+  $('hud-xpfill').style.width = (p.level >= MAX_LEVEL ? 100 : p.xp/xpNeed(p.level)*100) + '%';
+}
+
+/* ---------- AI 扩写 ---------- */
+async function maybeAIEnrich(el, baseText){
+  if(!AI_CFG.enabled || !AI_CFG.base || !AI_CFG.model) return;
+  const old = document.createElement('div');
+  old.className = 'ai-line';
+  old.style.cssText = 'margin-top:10px;padding:8px 12px;border-left:2px solid var(--gold);color:var(--gold-2);font-size:14px;font-style:italic;white-space:pre-wrap';
+  old.textContent = '（AI 正在为你续写这段江湖……）';
+  el.parentNode.appendChild(old);
+  const out = await aiGenerate('请为以下武侠剧情场景，续写或渲染一段约40-60字的古风旁白，直接给出正文，不要解释：\n' + baseText);
+  old.textContent = out || '（AI 未能响应，已用内置叙事引擎渲染）';
+}
+
+/* ============================================================
+   战 斗 系 统
+   ============================================================ */
+function startBattle(node, origin){
+  showScreen('screen-battle');
+  const c = node.combat;
+  B = {
+    scene: c.scene || '荒野', win: c.win, lose: c.lose, fleeable: c.fleeable !== false,
+    origin: origin || 'story', dropItem: c.dropItem, dropSkill: c.dropSkill,
+    enemies: c.enemies.map(id => makeEnemy(id)),
+    buffs: {}, guarding: false, over: false, busy: false, targeting: null, reviveUsed: false,
+  };
+  $('battle-scene').textContent = '⚔ ' + B.scene;
+  $('battle-log').innerHTML = '';
+  renderBattle();
+  addLog('sys', node.text || '');
+  addLog('you', playerTaunt(S.player));
+  const boss = B.enemies.find(e => e.boss);
+  if(boss) addLog('foe', narrate(SCENE_WORDS.taunt[0], { line: pick(boss.banter || ['受死吧']) }));
+  addLog('sys', genAmbience());
+  if(S.player.traits.firstStrike) addLog('sys', '你占得先机（先手优势）！');
+}
+
+function makeEnemy(id){
+  const e = ENEMIES[id];
+  return { id, name:e.name, title:e.title, emoji:e.emoji, elem:e.elem, boss:!!e.boss,
+    hp:e.hp, maxHp:e.hp, atk:e.atk, def:e.def, spd:e.spd, crit:e.crit, eva:e.eva,
+    xp:e.xp, gold:e.gold, banter:e.banter||[], alive:true, poison:null, debuffs:{}, enraged:false, intent:'蓄势待发' };
+}
+
+function renderBattle(){
+  const row = $('enemy-row'); row.innerHTML = '';
+  B.enemies.forEach((e, i) => {
+    const card = document.createElement('div');
+    card.className = 'enemy-card' + (e.alive ? '' : ' dead') + (B.targeting === i ? ' target' : '');
+    const pct = clamp(e.hp/e.maxHp*100, 0, 100);
+    card.innerHTML = `
+      <div class="enemy-portrait"></div>
+      <div class="enm">${e.name}</div>
+      <div class="etitle">${e.title}${e.enraged?' · 狂暴':''}</div>
+      ${e.elem ? `<div class="elem-tag">${ELEM_EMOJI[e.elem]} ${ELEMS[e.elem]}</div>` : ''}
+      <div class="hp-track"><div class="hp-fill" style="width:${pct}%"></div></div>
+      <div class="ehp">${Math.max(0,e.hp)}/${e.maxHp}${e.poison?' ☠':''}</div>
+      <div class="intent">${e.alive ? e.intent : '已败'}</div>`;
+    setPortrait(card.querySelector('.enemy-portrait'), e.id);
+    card.onclick = () => onEnemyClick(i);
+    row.appendChild(card);
+  });
+
+  const p = S.player;
+  setPortrait($('battle-avatar'), p.cid);
+  $('battle-you-name').textContent = `${p.name} · Lv.${p.level}${B.guarding?' · 防御中':''}`;
+  $('battle-hp').textContent = p.hp + '/' + p.maxHp; $('battle-mp').textContent = p.mp + '/' + p.maxMp;
+  $('battle-hpfill').style.width = (p.hp/p.maxHp*100) + '%'; $('battle-mpfill').style.width = (p.mp/p.maxMp*100) + '%';
+  const buffTxt = [];
+  Object.keys(B.buffs).forEach(k => { const b = B.buffs[k]; if(b && b.turns>0) buffTxt.push(`${kLabel(k)}+${b.val}`); });
+  const pen = repPenalty(p);
+  $('battle-buffs').textContent = (buffTxt.length ? '状态：' + buffTxt.join(' · ') : '') + (pen ? ' ｜ 声望为负·攻击受抑' : '');
+  renderActions();
+}
+const kLabel = { atk:'攻', def:'防', crit:'会心', spd:'速', eva:'闪' };
+
+function effectiveAtk(p){ let a = p.atk; const pen = repPenalty(p); if(pen) a = Math.round(a * (1 + pen.atkPct)); return Math.max(1, a); }
+
+function renderActions(){
+  const box = $('battle-actions'); box.innerHTML = '';
+  const p = S.player;
+  const locked = B.busy || B.over || B.targeting !== null;
+  const base = [
+    { t:'🗡 普攻', cost:'', act:()=> actAttack() },
+    { t:'🛡 防御', cost:'减伤', act:()=> actDefend() },
+    { t:'💊 用药', cost:'', act:()=> actUseItem() },
+  ];
+  if(B.fleeable) base.push({ t:'🏃 撤离', cost:'', act:()=> actFlee() });
+
+  const skills = p.equippedSkills.map(sid => {
+    const s = SKILLS[sid]; const lv = ownLevel(p, sid);
+    return { t:`${ELEM_EMOJI[s.elem]||''} ${s.name} Lv.${lv}`, cost:`耗${s.cost}内力`, desc:s.desc, disabled: p.mp < s.cost, act:()=> actSkill(sid) };
+  });
+
+  [...base, ...skills].forEach(a => {
+    const b = document.createElement('button');
+    b.className = 'action';
+    b.innerHTML = a.t + `<span class="cost">${a.cost}</span>` + (a.desc ? `<span class="skill-sub">${a.desc}</span>` : '');
+    b.disabled = !!(a.disabled || locked); b.onclick = a.act; box.appendChild(b);
+  });
+}
+
+function onEnemyClick(i){
+  if(B.targeting === null || B.busy || B.over) return;
+  const e = B.enemies[i]; if(!e || !e.alive) return;
+  const kind = B.targeting; B.targeting = null;
+  resolvePlayerAction(kind, i);
+}
+
+function actAttack(){ if(needTarget()){ enterTargeting('attack'); return; } resolvePlayerAction('attack', firstAlive()); }
+function actSkill(sid){
+  const s = SKILLS[sid];
+  if(S.player.mp < s.cost){ toast('内力不足'); return; }
+  if(s.target === 'single' && needTarget()){ enterTargeting(sid); return; }
+  resolvePlayerAction(sid, firstAlive());
+}
+function actDefend(){ B.guarding = true; addLog('you','你凝神静气，横兵格挡，准备承受来势。'); afterPlayerAction(); }
+function actUseItem(){
+  const p = S.player;
+  const ids = Object.keys(p.inventory).filter(id => ITEMS[id] && (ITEMS[id].type==='hp'||ITEMS[id].type==='mp'));
+  if(!ids.length){ addLog('sys','你没有可用药品。'); renderBattle(); return; }
+  const prefer = (p.hp < p.maxHp && ids.includes('jinchuang')) ? 'jinchuang'
+    : (p.mp < p.maxMp && ids.includes('huiqi')) ? 'huiqi'
+    : (p.hp < p.maxHp && ids.includes('yulu')) ? 'yulu' : ids[0];
+  const item = ITEMS[prefer]; const e = item.effect || {}; let msg = '';
+  if(e.healPct){ const h = Math.round(p.maxHp*e.healPct); p.hp = clamp(p.hp+h,1,p.maxHp); msg += `气血回复 ${h} `; }
+  if(e.mpPct){ const m = Math.round(p.maxMp*e.mpPct); p.mp = clamp(p.mp+m,0,p.maxMp); msg += `内力回复 ${m} `; }
+  if(e.mpAmt){ p.mp = clamp(p.mp+e.mpAmt,0,p.maxMp); msg += `内力回复 ${e.mpAmt} `; }
+  p.inventory[prefer]--; if(p.inventory[prefer]<=0) delete p.inventory[prefer];
+  addLog('you', `你服下「${item.name}」，${msg}。`);
+  AudioSys.play('heal');
+  afterPlayerAction();
+}
+function actFlee(){
+  if(!B.fleeable) return;
+  if(Math.random() < 0.5){ addLog('sys','你且战且退，寻隙脱身。'); endBattle('flee'); }
+  else { addLog('sys','敌人死死缠住，你未能脱身！'); afterPlayerAction(); }
+}
+
+function needTarget(){ return B.enemies.filter(e => e.alive).length > 1; }
+function firstAlive(){ return B.enemies.findIndex(e => e.alive); }
+function enterTargeting(kind){ B.targeting = kind; toast('请选择攻击目标'); renderBattle(); }
+
+function resolvePlayerAction(kind, targetIdx){
+  const p = S.player;
+  if(kind === 'attack'){ doPlayerHit(B.enemies[targetIdx], 1.0, 0, '挥动兵刃', null); }
+  else { const s = SKILLS[kind]; p.mp = clamp(p.mp - s.cost, 0, p.maxMp); AudioSys.play('skill'); applyPlayerSkill(s, targetIdx); }
+  renderBattle(); afterPlayerAction();
+}
+
+function doPlayerHit(e, power, critBonus, verb, elem){
+  if(!e || !e.alive) return;
+  const p = S.player;
+  if(roll(e.eva)){ addLog('you', `你的${verb}被${e.name}堪堪避开。`); AudioSys.play('dodge'); return; }
+  let raw = effectiveAtk(p) * power * p.traits.dmgDealtMul;
+  const cbonus = counterBonus(elem, e.elem);
+  if(cbonus > 0) addLog('sys', pick(SCENE_WORDS.counterOn));
+  if(cbonus < 0) addLog('sys', pick(SCENE_WORDS.counterOff));
+  raw *= (1 + cbonus);
+  let reduce = effEnemyDef(e) * 0.5;
+  let dmg = Math.max(1, Math.round(raw - reduce));
+  let crit = false;
+  if(roll(effPlayer().crit + critBonus)){ dmg = Math.round(dmg*1.6); crit = true; }
+  e.hp -= dmg;
+  AudioSys.play(crit ? 'crit' : 'hit');
+  addLog('you', narrate(pick(SCENE_WORDS.youHit), { skill: verb, enemy: e.name, hit: dmgPhrase(dmg, crit) }) + ` （-${dmg}）`);
+  if(e.hp <= 0){ e.hp = 0; e.alive = false; addLog('sys', `${e.name} 倒下了！`); }
+}
+
+function applyPlayerSkill(s, targetIdx){
+  const p = S.player; const e = B.enemies[targetIdx]; const lv = ownLevel(p, s.id) || 1;
+  const sp = skillPower(s, lv);
+  switch(s.kind){
+    case 'dmg': {
+      const targets = s.target === 'all' ? B.enemies.filter(x=>x.alive) : (e && e.alive ? [e] : []);
+      targets.forEach(en => doPlayerHit(en, sp, s.critBonus||0, s.name, s.elem));
+      if(s.poison){ const pd = { dmg: Math.round(s.poison.dmg * (1+0.15*(lv-1))), turns:s.poison.turns };
+        (s.target === 'all' ? B.enemies.filter(x=>x.alive) : targets).forEach(en => { if(en.alive) en.poison = { dmg:pd.dmg, turns:pd.turns }; }); }
+      break;
+    }
+    case 'heal': {
+      const heal = Math.round((s.heal*(1+0.15*(lv-1)) + s.healPct*effPlayer().atk) * p.traits.healMul);
+      p.hp = clamp(p.hp + heal, 1, p.maxHp);
+      addLog('you', `你施展「${s.name}」，气血回复 ${heal} 点。`);
+      AudioSys.play('heal');
+      if(s.buff) applyPlayerBuff(s.buff, s.turns||3);
+      break;
+    }
+    case 'buff': { applyPlayerBuff(s.buff, s.turns||3); addLog('you', `你施展「${s.name}」，${buffDesc(s.buff)}，战力大增。`); AudioSys.play('buff'); break; }
+    case 'debuff': {
+      const targets = s.target === 'all' ? B.enemies.filter(x=>x.alive) : (e && e.alive ? [e] : []);
+      targets.forEach(en => { Object.keys(s.debuff).forEach(k => { en.debuffs[k] = { val:s.debuff[k], turns:s.turns||3 }; }); addLog('you', `「${s.name}」命中 ${en.name}，${debuffDesc(s.debuff)}。`); });
+      break;
+    }
+  }
+}
+
+function buffDesc(b){ const parts = []; if(b.atk) parts.push('攻击+'+b.atk); if(b.def) parts.push('防御+'+b.def); if(b.crit) parts.push('会心+'+b.crit); if(b.spd) parts.push('速度+'+b.spd); if(b.eva) parts.push('闪避+'+b.eva); return parts.join('、'); }
+function debuffDesc(b){ const parts = []; if(b.atk) parts.push('攻击-'+b.atk); if(b.def) parts.push('防御-'+b.def); return parts.join('、'); }
+function applyPlayerBuff(b, turns){ Object.keys(b).forEach(k => { B.buffs[k] = { val:b[k], turns }; }); }
+
+function effPlayer(){ const p = S.player; const b = k => B.buffs[k] ? B.buffs[k].val : 0;
+  return { atk:effectiveAtk(p) + b('atk'), def:p.def + b('def'), crit:p.crit + b('crit'), spd:p.spd + b('spd'), eva:p.eva + b('eva') }; }
+function effEnemyDef(e){ const d = e.debuffs.def ? e.debuffs.def.val : 0; return Math.max(0, e.def - d); }
+function effEnemyAtk(e){ let a = e.atk * (e.enraged ? 1.3 : 1); const d = e.debuffs.atk ? e.debuffs.atk.val : 0; return Math.max(1, Math.round(a - d)); }
+
+async function afterPlayerAction(){
+  B.busy = true; B.guarding = false; renderBattle();
+  if(B.enemies.every(e => !e.alive)){ await sleep(700); endBattle('win'); return; }
+  await sleep(550);
+  await enemyPhase();
+  renderBattle();
+  if(S.player.hp <= 0){ await sleep(700); endBattle('lose'); return; }
+  endOfRound(); renderBattle();
+  if(B.enemies.every(e => !e.alive)){ await sleep(700); endBattle('win'); return; }
+  B.busy = false; updateHud(); renderBattle();
+}
+
+async function enemyPhase(){
+  const alive = B.enemies.filter(e => e.alive).sort((a,b) => b.spd - a.spd);
+  for(const e of alive){
+    if(S.player.hp <= 0 || B.over) break;
+    if(!e.alive) continue;
+    enemyAct(e); renderBattle(); await sleep(420);
+  }
+}
+function enemyAct(e){
+  if(e.hp < e.maxHp*0.3 && !e.enraged){ e.enraged = true; addLog('sys', `${e.name} 双目赤红，陷入狂暴，攻势大增！`); if(e.banter[1]) addLog('foe', narrate(SCENE_WORDS.taunt[0], { line:e.banter[1] })); }
+  const heavy = e.boss ? (Math.random() < 0.28) : (Math.random() < 0.14);
+  if(heavy){ e.intent = '蓄力 · 致命一击'; renderBattle(); doEnemyHit(e, effEnemyAtk(e), e.boss?1.7:1.5, '蓄力一击'); }
+  else { e.intent = '挥刀攻来'; renderBattle(); doEnemyHit(e, effEnemyAtk(e), 1.0, '攻来'); }
+}
+function doEnemyHit(e, atk, power, verb){
+  const p = S.player; const ep = effPlayer();
+  if(roll(ep.eva)){ addLog('foe', `${e.name} ${verb}，` + pick(SCENE_WORDS.dodge)); AudioSys.play('dodge'); return; }
+  let raw = atk * power; let reduce = ep.def * 0.5;
+  let dmg = Math.max(1, Math.round(raw - reduce));
+  let crit = false;
+  if(roll(e.crit)){ dmg = Math.round(dmg*1.6); crit = true; }
+  if(B.guarding) dmg = Math.max(1, Math.round(dmg*0.5));
+  dmg = Math.max(1, Math.round(dmg * p.traits.dmgTakenMul));
+  p.hp = clamp(p.hp - dmg, 0, p.maxHp);
+  AudioSys.play('enemyHit');
+  addLog('foe', narrate(pick(SCENE_WORDS.foeHit), { enemy:e.name, skill:verb, hit:dmgPhrase(dmg, crit) }) + ` （-${dmg}）`);
+}
+
+function endOfRound(){
+  B.enemies.forEach(e => {
+    if(e.alive && e.poison){ e.hp -= e.poison.dmg; addLog('you', `${e.name} 毒素侵蚀，气血 -${e.poison.dmg}。`);
+      if(e.hp <= 0){ e.hp = 0; e.alive = false; addLog('sys', `${e.name} 毒发身亡！`); }
+      e.poison.turns--; if(e.poison.turns <= 0) e.poison = null; }
+  });
+  Object.keys(B.buffs).forEach(k => { B.buffs[k].turns--; if(B.buffs[k].turns <= 0) delete B.buffs[k]; });
+  B.enemies.forEach(e => { Object.keys(e.debuffs).forEach(k => { e.debuffs[k].turns--; if(e.debuffs[k].turns <= 0) delete e.debuffs[k]; }); });
+  B.guarding = false;
+}
+
+function addLog(cls, text){
+  const log = $('battle-log');
+  const line = document.createElement('div'); line.className = 'line ' + cls; line.textContent = text;
+  log.appendChild(line); log.scrollTop = log.scrollHeight;
+}
+
+async function endBattle(result){
+  if(B.over) return;
+  B.over = true;
+  const p = S.player;
+  if(result === 'win'){
+    addLog('sys', pick(SCENE_WORDS.victory));
+    AudioSys.play('victory');
+    const xp = B.enemies.reduce((s,e)=>s+e.xp,0);
+    const gold = B.enemies.reduce((s,e)=>s+e.gold,0);
+    p.gold += gold;
+    if(p.traits.battleEndHeal){ const h = Math.round(p.maxHp*p.traits.battleEndHeal); p.hp = clamp(p.hp+h,1,p.maxHp); addLog('you',`战后气血回复 ${h} 点。`); }
+    addLog('sys', `获得修为 +${xp}，银两 +${gold}。`);
+    if(B.dropItem) Object.keys(B.dropItem).forEach(k => { addItem(p, k, B.dropItem[k]); addLog('sys', `获得物品：${ITEMS[k].name} ×${B.dropItem[k]}`); });
+    if(B.dropSkill){ const s = learnRandomSkill(p); if(s) addLog('sys', `悟得武学：${SKILLS[s].name}！`); }
+    gainXp(xp);
+    await sleep(600);
+    battleDone(B.win);
+  } else if(result === 'lose'){
+    if(p.traits.revive && !B.reviveUsed){ B.reviveUsed = true; p.hp = Math.max(1, Math.round(p.maxHp*0.3));
+      addLog('sys','「百折不挠」——你在绝境中迸发出一股气劲，重新站起！'); B.over = false; B.busy = false; renderBattle(); return; }
+    addLog('sys', pick(SCENE_WORDS.defeat));
+    AudioSys.play('defeat');
+    await sleep(700);
+    const lossGold = Math.min(p.gold, Math.round(p.gold*0.1));
+    p.gold -= lossGold;
+    p.hp = Math.round(p.maxHp*0.6);
+    toast(`败走江湖，损失 ${lossGold} 两，但命还在。`);
+    battleDone(B.lose);
+  } else if(result === 'flee'){
+    battleDone(B.win);
+  }
+  updateHud();
+}
+function battleDone(nodeId){
+  saveGame();
+  if(B.origin === 'map'){ showScreen('screen-map'); renderMap(); }
+  else { S.node = nodeId; renderStoryScreen(); }
+}
+
+/* ============================================================
+   地图 / 探索 / 机遇
+   ============================================================ */
+let pendingEncounter = null;
+function unlockRegion(p, id){ if(REGIONS.find(r => r.id === id) && !p.unlockedRegions.includes(id)){ p.unlockedRegions.push(id); toast('解锁新区域：' + REGIONS.find(r=>r.id===id).name); } }
+
+function renderMap(){
+  const box = $('map-list'); box.innerHTML = '';
+  const p = S.player;
+  const unlocked = REGIONS.filter(r => p.unlockedRegions.includes(r.id));
+  const locked = REGIONS.filter(r => !p.unlockedRegions.includes(r.id));
+  unlocked.forEach(r => {
+    const el = document.createElement('div'); el.className = 'card region-card';
+    el.innerHTML = `<div class="head"><div class="nm">${r.emoji} ${r.name}</div></div><div class="body">${r.desc}</div><div class="region-actions">
+      ${r.explore ? '<button class="btn small act-explore">探索</button>' : ''}
+      ${r.shop ? '<button class="btn small act-shop">商店</button>' : ''}
+    </div>`;
+    const eb = el.querySelector('.act-explore'); const sb = el.querySelector('.act-shop');
+    if(eb) eb.onclick = () => explore(r);
+    if(sb) sb.onclick = () => { S.activeShop = r.shop; showScreen('screen-shop'); renderShop(); };
+    box.appendChild(el);
+  });
+  locked.forEach(r => {
+    const el = document.createElement('div'); el.className = 'card region-card locked';
+    el.innerHTML = `<div class="head"><div class="nm">🔒 ${r.name}</div></div><div class="body">尚未解锁，随主线推进可达。</div>`;
+    box.appendChild(el);
+  });
+  if(!unlocked.length){ box.innerHTML = '<p style="color:var(--text-dim)">尚无可用区域。</p>'; }
+}
+
+function explore(region){
+  const enc = pick(ENCOUNTERS);
+  pendingEncounter = { region, enc };
+  $('map-modal-text').textContent = `【${region.name}】${enc.text}`;
+  $('map-modal').style.display = 'flex';
+}
+function resolveEncounter(){
+  if(!pendingEncounter) return;
+  const { region, enc } = pendingEncounter;
+  pendingEncounter = null;
+  if(enc.battle){
+    const c = { scene: region.name, enemies: enc.battle, win:'RETURN_MAP', lose:'RETURN_MAP', fleeable:true, dropItem:null, dropSkill:false };
+    startBattle({ type:'combat', text:`你在${region.name}探索时遭遇强敌！`, combat:c }, 'map');
+  } else if(enc.fx){
+    applyEffects(enc.fx);
+    renderMap();
+  } else {
+    renderMap();
+  }
+}
+
+/* ---------- 商店 ---------- */
+function openShopFromMenu(){ S.activeShop = S.activeShop || 'biancheng'; showScreen('screen-shop'); renderShop(); }
+function renderShop(){
+  const shop = SHOPS[S.activeShop] || SHOPS.biancheng;
+  $('shop-name').textContent = shop.name;
+  const p = S.player;
+  const pen = repPenalty(p);
+  const priceMul = pen ? (1 + pen.shopPct) : 1;
+  $('shop-gold').textContent = '银两 ' + p.gold + (pen ? '（声望为负，物价上涨）' : '');
+  const box = $('shop-list'); box.innerHTML = '';
+  shop.stock.forEach(id => {
+    const item = ITEMS[id]; if(!item) return;
+    const price = Math.round(item.price * priceMul);
+    const el = document.createElement('div'); el.className = 'shop-item';
+    el.innerHTML = `<span class="rarity" style="color:${RARITY_COLOR[item.rarity]}">${item.rarity}</span>
+      <span class="nm">${item.name}</span><span class="desc">${item.desc}</span>
+      <button class="btn small" ${p.gold < price ? 'disabled' : ''}>${price}两</button>`;
+    el.querySelector('button').onclick = () => buyItem(id, price);
+    box.appendChild(el);
+  });
+}
+function buyItem(id, price){
+  const p = S.player;
+  if(p.gold < price){ toast('银两不足'); return; }
+  p.gold -= price; addItem(p, id, 1);
+  toast('购得 ' + ITEMS[id].name);
+  AudioSys.play('buy');
+  saveGame(); renderShop();
+}
+
+/* ---------- 背包 / 角色 / 技能 ---------- */
+function renderInventory(){
+  const p = S.player; const box = $('inv-list'); box.innerHTML = '';
+  const ids = Object.keys(p.inventory).filter(id => p.inventory[id] > 0);
+  if(!ids.length){ box.innerHTML = '<p style="color:var(--text-dim)">背包空空如也。</p>'; }
+  ids.forEach(id => {
+    const item = ITEMS[id]; if(!item) return;
+    const eq = p.equipment.weapon===id || p.equipment.armor===id || p.equipment.acc===id;
+    const el = document.createElement('div'); el.className = 'shop-item';
+    el.innerHTML = `<span class="rarity" style="color:${RARITY_COLOR[item.rarity]}">${item.rarity}</span>
+      <span class="nm">${item.name} ×${p.inventory[id]}${eq?'（已装备）':''}</span><span class="desc">${item.desc}</span>
+      <button class="btn small">${(item.type==='weapon'||item.type==='armor'||item.type==='acc')?'装备':'使用'}</button>`;
+    el.querySelector('button').onclick = () => useItem(id);
+    box.appendChild(el);
+  });
+}
+function renderCharSheet(){
+  const p = S.player;
+  const d = p.destiny, t = p.talent, rep = p.reputation;
+  const repTxt = Object.keys(rep).map(k => `${k} ${rep[k]>0?'+':''}${rep[k]}`).join(' · ');
+  const eq = ['weapon','armor','acc'].map(s => p.equipment[s] ? ITEMS[p.equipment[s]].name : '无').join(' / ');
+  $('char-sheet').innerHTML = `
+    <div class="dossier-top">
+      <div class="portrait big"></div>
+      <div><div class="nm">${p.name} <span class="role">${p.role}</span></div><div class="cp-tag">Lv.${p.level} · ${d.name} · ${t.name}</div></div>
+    </div>
+    <div class="stat-grid">
+      ${[['气血',p.maxHp],['内力',p.maxMp],['攻击',p.atk],['防御',p.def],['速度',p.spd],['会心',p.crit+'%'],['闪避',p.eva+'%'],['技能点',p.skillPoints]].map(s=>`<div class="stat-item"><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}
+    </div>
+    <div class="opt-title">装备</div><div class="chip-row">${eq.split(' / ').map(s=>`<span class="chip">${s}</span>`).join('')}</div>
+    <div class="opt-title">声望（可为负）</div>
+    <div class="chip-row">${repTxt.split(' · ').map(s=>`<span class="chip">${s}</span>`).join('')}<span class="chip">总计 ${repTotal(p)}</span></div>
+    ${repPenalty(p) ? '<p class="penalty">⚠ 总声望为负，攻击与物价均受负面影响。</p>' : ''}
+    <div class="opt-title">命格 / 天赋</div>
+    <div class="chip-row"><span class="chip">${d.name}（${d.tag}）</span><span class="chip">${t.name}（${t.tag}）</span></div>`;
+  setPortrait($('char-sheet').querySelector('.portrait.big'), p.cid);
+}
+function renderSkills(){
+  const p = S.player;
+  $('skill-points').textContent = '技能点 ' + p.skillPoints + '（已装配 ' + p.equippedSkills.length + '/' + MAX_SKILLS_EQUIP + '）';
+  const box = $('skill-list'); box.innerHTML = '';
+  p.ownedSkills.forEach(o => {
+    const s = SKILLS[o.id]; if(!s) return;
+    const eq = p.equippedSkills.includes(o.id);
+    const canUp = o.level < s.maxLevel && p.skillPoints >= SKILL_UP_COST[o.level-1];
+    const el = document.createElement('div'); el.className = 'shop-item skill-item';
+    el.innerHTML = `<span class="elem">${ELEM_EMOJI[s.elem]||''}${ELEMS[s.elem]||''}</span>
+      <span class="nm">${s.name} <span class="lvl">Lv.${o.level}/${s.maxLevel}</span></span>
+      <span class="desc">${s.desc} · 威力 ${Math.round(skillPower(s,o.level)*100)}%</span>
+      <button class="btn small">${eq?'卸下':'装配'}</button>
+      ${o.level < s.maxLevel ? `<button class="btn small ${canUp?'primary':''}" ${canUp?'':'disabled'}>升级${SKILL_UP_COST[o.level-1]}点</button>` : ''}`;
+    const btns = el.querySelectorAll('button');
+    btns[0].onclick = () => toggleEquip(o.id);
+    if(btns[1]) btns[1].onclick = () => upgradeSkill(o.id);
+    box.appendChild(el);
+  });
+}
+function toggleEquip(sid){
+  const p = S.player; const i = p.equippedSkills.indexOf(sid);
+  if(i >= 0) p.equippedSkills.splice(i, 1);
+  else { if(p.equippedSkills.length >= MAX_SKILLS_EQUIP){ toast('装配已满（最多 8 个）'); return; } p.equippedSkills.push(sid); }
+  saveGame(); renderSkills();
+}
+function upgradeSkill(sid){
+  const p = S.player; const o = p.ownedSkills.find(x => x.id === sid);
+  if(!o || o.level >= SKILLS[sid].maxLevel) return;
+  const cost = SKILL_UP_COST[o.level-1];
+  if(p.skillPoints < cost){ toast('技能点不足'); return; }
+  p.skillPoints -= cost; o.level++;
+  toast(`${SKILLS[sid].name} 升至 Lv.${o.level}，威力提升！`);
+  saveGame(); renderSkills();
+}
+
+/* ---------- 结局 ---------- */
+function computeEnding(){
+  const g = k => (S.flags[k] || 0); const p = S.player;
+  if(p.isCustom && g('线索') >= 5) return 'true_dragon';
+  if(g('执念') >= 5) return 'dark';
+  if(g('权谋') >= 4 && g('权谋') >= g('情义') + 2) return 'rule';
+  if(g('复仇') >= 4 && g('复仇') > g('宽恕') && g('情义') < 4) return 'sad';
+  if(g('宽恕') >= 3 && g('情义') >= 3 && g('正道') < 3) return 'free';
+  if(g('正道') >= 2 && g('情义') >= 2) return 'perfect';
+  if(g('宽恕') > g('复仇')) return 'free';
+  if(g('情义') > g('权谋')) return 'perfect';
+  return 'perfect';
+}
+function showEnding(id){
+  resetTyping(); S.node = null; S.pendingNext = null;
+  AudioSys.stopMusic();
+  const e = ENDINGS[id] || ENDINGS.perfect;
+  showScreen('screen-ending');
+  $('ending-title').textContent = e.title;
+  $('ending-title').previousElementSibling.textContent = '—— ' + e.tag + ' ——';
+  typeInto($('ending-text'), e.text, 26);
+  const p = S.player;
+  const stats = [`境界 Lv.${p.level}`, `银两 ${p.gold}`, `命格 · ${p.destiny.name}`, `天赋 · ${p.talent.name}`, `声望总计 ${repTotal(p)}`];
+  const flagNames = { 情义:'情义', 权谋:'权谋', 正道:'正道', 执念:'执念', 复仇:'复仇', 宽恕:'宽恕', 线索:'线索' };
+  Object.keys(flagNames).forEach(k => { if((S.flags[k]||0) > 0) stats.push(`${flagNames[k]} ${S.flags[k]}`); });
+  $('ending-stats').innerHTML = stats.map(s => `<span class="chip">${s}</span>`).join('');
+  saveGame();
+}
+
+/* ---------- 设置 ---------- */
+function openSettings(){
+  $('cfg-base').value = AI_CFG.base || ''; $('cfg-key').value = AI_CFG.key || '';
+  $('cfg-model').value = AI_CFG.model || 'deepseek-chat'; $('cfg-ai').checked = !!AI_CFG.enabled;
+  $('modal').style.display = 'flex';
+}
+function saveSettings(){
+  AI_CFG.base = $('cfg-base').value.trim(); AI_CFG.key = $('cfg-key').value.trim();
+  AI_CFG.model = $('cfg-model').value.trim() || 'deepseek-chat'; AI_CFG.enabled = $('cfg-ai').checked;
+  persistAICfg(); $('modal').style.display = 'none';
+  toast(AI_CFG.enabled ? '已启用外部 AI 生成' : '已切回内置叙事引擎');
+}
+function persistAICfg(){ try{ localStorage.setItem('zui-lingyun-ai', JSON.stringify(AI_CFG)); }catch(e){} }
+function loadAICfg(){ try{ const r = localStorage.getItem('zui-lingyun-ai'); if(r) AI_CFG = Object.assign(AI_CFG, JSON.parse(r)); }catch(e){} }
+
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
